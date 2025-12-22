@@ -1,8 +1,16 @@
+<!-- =========================
+     BOOHA BLOCKS (UPDATED)
+     Part 1 / 3
+     Paste ALL parts together (Part 1 + Part 2 + Part 3) into ONE file.
+     ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>Booha Blocks – Practice Deck</title>
+
+<link rel="icon" type="image/png" sizes="32x32" href="BooBlocks.png">
+<link rel="apple-touch-icon" href="BooBlocks.png">
 
   <!-- no pinch zoom -->
   <meta name="viewport"
@@ -12,10 +20,16 @@
 
   <style>
   :root{
+    /* ✅ Level theme colors will overwrite these via JS */
     --pink:#ff7eb9;
     --aqua:#7dd3fc;
+
     --gold:#ffd166;
     --outline:rgba(255,255,255,0.35);
+
+    /* ✅ reactive glow (JS updates) */
+    --pulse:0;
+    --pulse2:0;
   }
 
   /* RESET */
@@ -28,8 +42,20 @@
     justify-content:center;
     padding-top:4vh;
     padding-bottom:4vh;
+
+    /* ✅ background glow reacts to clears */
     background:
+      radial-gradient(circle at 50% 30%,
+        rgba(255,255,255, calc(0.10 * var(--pulse))) 0%,
+        rgba(0,0,0,0) 38%),
+      radial-gradient(circle at 20% 15%,
+        color-mix(in srgb, var(--pink) 60%, transparent) calc(10% * var(--pulse2)),
+        transparent 45%),
+      radial-gradient(circle at 80% 85%,
+        color-mix(in srgb, var(--aqua) 60%, transparent) calc(10% * var(--pulse2)),
+        transparent 50%),
       radial-gradient(circle at top, #1f2937 0%, #020617 55%, #000000 100%);
+
     font-family:'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     color:#f9fafb;
     overflow:hidden;
@@ -71,6 +97,27 @@
     opacity:0.9;
     animation:orbGlow 6s ease-in-out infinite alternate;
   }
+
+  /* ✅ reactive shell glow on clears */
+  .shell::after{
+    content:"";
+    position:absolute;
+    inset:-6px;
+    border-radius:30px;
+    pointer-events:none;
+    z-index:-2;
+    filter:blur(14px);
+    opacity:calc(0.15 + (0.55 * var(--pulse)));
+    background:
+      radial-gradient(circle at 30% 25%,
+        color-mix(in srgb, var(--pink) 75%, transparent) 0%,
+        transparent 55%),
+      radial-gradient(circle at 70% 75%,
+        color-mix(in srgb, var(--aqua) 75%, transparent) 0%,
+        transparent 60%);
+    transition:opacity .12s ease;
+  }
+
   @keyframes orbGlow{
     0%{transform:translate3d(-4px,-4px,0) scale(1);}
     100%{transform:translate3d(4px,4px,0) scale(1.02);}
@@ -142,7 +189,7 @@
   }
   .hud-row .next{
     color:var(--pink);
-    text-shadow:0 0 6px #ff7eb9;
+    text-shadow:0 0 6px color-mix(in srgb, var(--pink) 70%, white);
   }
 
   /* GAME CANVAS */
@@ -151,9 +198,11 @@
     border-radius:18px;
     border:1px solid var(--outline);
     background:radial-gradient(circle at top,#020617 0%,#000 50%,#020617 100%);
+    /* ✅ glow reacts to clears + level colors */
     box-shadow:
-      0 0 22px rgba(59,130,246,0.55),
-      0 0 50px rgba(15,23,42,0.9);
+      0 0 calc(18px + (26px * var(--pulse))) color-mix(in srgb, var(--aqua) 55%, transparent),
+      0 0 calc(38px + (60px * var(--pulse))) rgba(15,23,42,0.9),
+      0 0 calc(10px + (22px * var(--pulse))) color-mix(in srgb, var(--pink) 45%, transparent);
     image-rendering:pixelated;
     touch-action:none;
     width:100%;
@@ -291,39 +340,95 @@
     display:none;align-items:center;justify-content:center;
     z-index:50;
   }
+
+  /* ✅ more fun + slightly bigger */
   .q-card{
-    width:min(92vw,440px);
-    border-radius:20px;
+    width:min(92vw,520px);
+    border-radius:22px;
     padding:18px 18px 16px;
-    background:radial-gradient(circle at top,#111827,#020617 65%,#020617 100%);
-    border:1px solid rgba(248,250,252,0.25);
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at top, rgba(255,255,255,0.10), transparent 45%),
+      radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--pink) 45%, transparent) 0%, transparent 55%),
+      radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--aqua) 45%, transparent) 0%, transparent 60%),
+      radial-gradient(circle at top,#111827,#020617 65%,#020617 100%);
+    border:1px solid rgba(248,250,252,0.28);
     box-shadow:
-      0 0 30px rgba(251,113,133,0.8),
-      0 0 80px rgba(56,189,248,0.6);
+      0 0 26px color-mix(in srgb, var(--pink) 55%, transparent),
+      0 0 70px color-mix(in srgb, var(--aqua) 45%, transparent);
     color:#f9fafb;
   }
+
+  /* ✅ animated header stripe */
+  .q-card::before{
+    content:"";
+    position:absolute;
+    left:-30%;
+    top:-40px;
+    width:160%;
+    height:120px;
+    background:linear-gradient(90deg,
+      transparent,
+      color-mix(in srgb, var(--pink) 65%, transparent),
+      color-mix(in srgb, var(--aqua) 65%, transparent),
+      transparent);
+    opacity:.55;
+    transform:rotate(-6deg);
+    animation:qSweep 3.8s ease-in-out infinite;
+  }
+  @keyframes qSweep{
+    0%{transform:translateX(-12%) rotate(-6deg);}
+    50%{transform:translateX(12%) rotate(-6deg);}
+    100%{transform:translateX(-12%) rotate(-6deg);}
+  }
+
+  /* ✅ faint sparkle dots inside popup */
+  .q-card::after{
+    content:"";
+    position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 15% 25%, rgba(255,255,255,.18) 0 2px, transparent 3px),
+      radial-gradient(circle at 70% 35%, rgba(255,255,255,.14) 0 2px, transparent 3px),
+      radial-gradient(circle at 40% 80%, rgba(255,255,255,.12) 0 2px, transparent 3px),
+      radial-gradient(circle at 85% 70%, rgba(255,255,255,.15) 0 2px, transparent 3px);
+    opacity:.6;
+    mix-blend-mode:screen;
+    pointer-events:none;
+  }
+
   .q-title{
     font-family:'Cinzel',serif;
     font-weight:900;
-    letter-spacing:.08em;
+    letter-spacing:.10em;
     text-align:center;
     margin-bottom:6px;
+    position:relative;
+    z-index:1;
+    text-shadow:0 0 10px rgba(255,255,255,.35);
   }
   .q-sub{
     text-align:center;
     font-size:.82rem;
-    opacity:.85;
+    opacity:.9;
     margin-bottom:12px;
+    position:relative;
+    z-index:1;
   }
   #questionText{
-    font-size:1rem;
+    font-size:1.05rem;
     line-height:1.45;
     margin:8px 0 12px;
+    position:relative;
+    z-index:1;
+    text-shadow:0 0 10px rgba(0,0,0,.35);
   }
   .choices{
     display:grid;
     gap:10px;
     margin-top:10px;
+    position:relative;
+    z-index:1;
   }
   .choiceBtn{
     appearance:none;
@@ -336,22 +441,26 @@
     cursor:pointer;
     text-align:left;
     box-shadow:0 10px 24px rgba(0,0,0,.25);
-    transition:transform .08s ease, background .12s ease, border-color .12s ease;
+    transition:transform .08s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
   }
   .choiceBtn:active{transform:scale(.98);}
   .choiceBtn.correct{
     background:rgba(34,197,94,.22);
     border-color:rgba(34,197,94,.65);
+    box-shadow:0 0 16px rgba(34,197,94,.35);
   }
   .choiceBtn.wrong{
     background:rgba(239,68,68,.18);
     border-color:rgba(239,68,68,.55);
+    box-shadow:0 0 16px rgba(239,68,68,.25);
   }
   .q-note{
     font-size:.8rem;
-    opacity:.9;
+    opacity:.92;
     margin-top:10px;
     text-align:center;
+    position:relative;
+    z-index:1;
   }
 
   /* START OVERLAY */
@@ -383,7 +492,7 @@
   <div id="startOverlayInner">
     <span class="big">画面をタップしてスタート</span>
     ブロックを動かしてラインを消そう！<br>
-    １０ラインごとにブーハクイズが出てくるよ。
+    ５ラインごとにブーハクイズが出てくるよ。
   </div>
 </div>
 
@@ -405,7 +514,7 @@
     </div>
     <div>
       <span class="label">次のクイズ：</span>
-      <span class="next" id="nextAt">10</span>
+      <span class="next" id="nextAt">5</span>
       <span class="label">ライン</span>
     </div>
   </div>
@@ -446,7 +555,7 @@
         <p>● Tap the ↓ button to drop 1 square.</p>
         <p>● Hold the ↓ button to accelerate the fall (soft-drop).</p>
         <br>
-        <p>10ラインごとにクイズが出るよ！</p>
+        <p>5ラインごとにクイズが出るよ！</p>
       </div>
     </div>
   </div>
@@ -484,9 +593,16 @@
   </div>
 </div>
 
+<!-- =========================
+     Part 2 / 3
+     ========================= -->
 <script>
 /* ======================================================
    Booha Blocks – Points + Speed + Question Gate
+   + ✅ Audio
+   + ✅ Quiz every 5 lines
+   + ✅ Line glimmer/sparkle clear + background pulse
+   + ✅ Level colors
    ====================================================== */
 
 /* ---- iOS pinch zoom guard ---- */
@@ -509,6 +625,98 @@ let linesClearedTotal = 0;
 let gravityFrames = 40; // start slow
 let frameCounter = 0;
 
+/* =========================
+   ✅ AUDIO (same folder)
+   ========================= */
+let audioUnlocked = false;
+
+const SFX = {
+  bgm: new Audio("booha-tetris-january.mp3"),
+  line: new Audio("booha-tetris-sound.mp3"),
+  full: new Audio("full-clear.mp3"),
+  correct: new Audio("correct.mp3")
+};
+
+SFX.bgm.loop = true;
+SFX.bgm.volume = 0.28;
+
+SFX.line.volume = 0.60;
+SFX.full.volume = 0.70;
+SFX.correct.volume = 0.75;
+
+function safePlay(a, {restart=true} = {}){
+  if(!audioUnlocked || !a) return;
+  try{
+    if(restart){
+      a.pause();
+      a.currentTime = 0;
+    }
+    const p = a.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+  }catch(_){}
+}
+
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+
+  // iOS-friendly: load but do NOT "play all at once"
+  try{
+    Object.values(SFX).forEach(a=>{
+      a.load();
+    });
+  }catch(_){}
+
+  // Start BGM after unlock
+  safePlay(SFX.bgm, {restart:false});
+}
+
+/* =========================
+   ✅ LEVEL THEMES (distinct)
+   ========================= */
+const LEVEL_THEMES = [
+  {p:"#7dd3fc", s:"#a7f3d0"}, // 1 ice blue + mint
+  {p:"#f472b6", s:"#93c5fd"}, // 2 pink + sky
+  {p:"#34d399", s:"#fde047"}, // 3 mint + sun
+  {p:"#a855f7", s:"#f59e0b"}, // 4 violet + amber
+  {p:"#fb7185", s:"#22c55e"}, // 5 coral + green
+  {p:"#06b6d4", s:"#f97316"}, // 6 cyan + orange
+  {p:"#e879f9", s:"#7dd3fc"}, // 7 neon pink + aqua
+  {p:"#facc15", s:"#60a5fa"}, // 8 gold + blue
+];
+
+let currentLevel = 1;
+function calcLevel(){
+  // level up every 10 lines (classic feel)
+  return Math.max(1, 1 + Math.floor(linesClearedTotal / 10));
+}
+function applyLevelTheme(){
+  const lvl = calcLevel();
+  if(lvl === currentLevel) return;
+  currentLevel = lvl;
+
+  const t = LEVEL_THEMES[(lvl - 1) % LEVEL_THEMES.length];
+  document.documentElement.style.setProperty("--pink", t.p);
+  document.documentElement.style.setProperty("--aqua", t.s);
+}
+
+/* =========================
+   ✅ REACTIVE GLOW (background)
+   ========================= */
+let pulse = 0;   // fast pulse
+let pulse2 = 0;  // slower glow
+function bumpGlow(lines){
+  // stronger when more lines clear
+  pulse = Math.min(1.15, pulse + 0.22 + 0.12 * lines);
+  pulse2 = Math.min(1.0,  pulse2 + 0.18 + 0.08 * lines);
+}
+function tickGlow(){
+  pulse *= 0.90;
+  pulse2 *= 0.965;
+  document.documentElement.style.setProperty("--pulse", pulse.toFixed(3));
+  document.documentElement.style.setProperty("--pulse2", pulse2.toFixed(3));
+}
+
 /* ---- HUD ---- */
 const linesEl = document.getElementById("linesCount");
 const scoreEl = document.getElementById("scoreValue");
@@ -517,7 +725,7 @@ const nextAtEl = document.getElementById("nextAt");
 function updateHud(){
   linesEl.textContent = linesClearedTotal;
   scoreEl.textContent = score;
-  nextAtEl.textContent = (currentQuestionIndex + 1) * 10;
+  nextAtEl.textContent = (currentQuestionIndex + 1) * 5; // ✅ every 5 lines
 }
 
 /* ---- playfield ---- */
@@ -598,6 +806,98 @@ function updateGravity(){
   gravityFrames = Math.max(8, 40 - Math.floor(score / 200));
 }
 
+/* =========================
+   ✅ LINE CLEAR FX (glimmer + sparkles)
+   ========================= */
+let isClearingLines = false;
+let clearingRows = [];
+let clearTicks = 0;
+let pendingLinesToApply = 0;
+
+const particles = [];
+function spawnClearParticles(rows){
+  // spawn sparkles across each cleared row
+  rows.forEach(r=>{
+    for(let i=0;i<26;i++){
+      const x = (Math.random()*10) * grid + (Math.random()*8);
+      const y = r * grid + (Math.random()*grid);
+      particles.push({
+        x, y,
+        vx: (Math.random()-0.5) * 1.6,
+        vy: - (0.6 + Math.random()*2.0),
+        life: 1.0,
+        decay: 0.035 + Math.random()*0.03,
+        size: 1.6 + Math.random()*2.6
+      });
+    }
+  });
+}
+
+function drawParticles(){
+  if(!particles.length) return;
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.04; // tiny gravity
+    p.life -= p.decay;
+
+    if(p.life <= 0){
+      particles.splice(i,1);
+      continue;
+    }
+
+    const a = Math.max(0, Math.min(1, p.life));
+    ctx.save();
+    ctx.globalAlpha = 0.85 * a;
+    ctx.fillStyle = "rgba(255,255,255,1)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fill();
+
+    // tiny gold tint sparkle
+    ctx.globalAlpha = 0.35 * a;
+    ctx.shadowBlur = 14;
+    ctx.shadowColor = "rgba(255,209,102,0.9)";
+    ctx.fillStyle = "rgba(255,209,102,1)";
+    ctx.beginPath();
+    ctx.arc(p.x+0.6, p.y-0.6, p.size*0.55, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function shimmerRowOverlay(r, t){
+  // a moving "shine" sweep across the row
+  const y = r * grid;
+  const phase = (t % 1);
+  const sweepX = (-grid*2) + phase * (canvas.width + grid*4);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.45;
+
+  const g = ctx.createLinearGradient(sweepX, y, sweepX + grid*4, y);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.45, "rgba(255,255,255,0.9)");
+  g.addColorStop(1, "rgba(255,255,255,0)");
+
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y, canvas.width, grid);
+
+  // sparkle flicker
+  ctx.globalAlpha = 0.18 + 0.18*Math.sin((Date.now()/60) + r);
+  ctx.fillStyle = "rgba(255,209,102,1)";
+  for(let i=0;i<6;i++){
+    const x = (i*54 + (Date.now()/6)%54) % canvas.width;
+    ctx.fillRect(x, y + 4 + (i%3), 2, 2);
+  }
+
+  ctx.restore();
+}
+
 /* ---- lock ---- */
 function lockPiece(){
   for(let r=0;r<piece.matrix.length;r++){
@@ -612,24 +912,52 @@ function lockPiece(){
     }
   }
 
-  let cleared = 0;
-  for(let r=19;r>=0;){
-    if(playfield[r].every(Boolean)){
-      playfield.splice(r,1);
-      playfield.unshift(Array(10).fill(0));
-      cleared++;
-    }else{
-      r--;
-    }
+  // ✅ find full rows FIRST, then animate, then remove
+  const fullRows = [];
+  for(let r=0;r<20;r++){
+    if(playfield[r].every(Boolean)) fullRows.push(r);
   }
+
+  if(fullRows.length){
+    isClearingLines = true;
+    clearingRows = fullRows.slice();
+    clearTicks = 12; // ~200ms shimmer
+    pendingLinesToApply = fullRows.length;
+
+    // ✅ sounds: full clear vs normal clear
+    if(fullRows.length >= 4) safePlay(SFX.full);
+    else safePlay(SFX.line);
+
+    bumpGlow(fullRows.length);
+    spawnClearParticles(fullRows);
+    return; // wait to actually remove rows
+  }
+
+  piece = nextPiece();
+  updateHud();
+}
+
+/* ---- remove cleared rows after shimmer ---- */
+function commitLineClear(){
+  // remove from bottom up
+  clearingRows.sort((a,b)=>b-a).forEach(r=>{
+    playfield.splice(r,1);
+    playfield.unshift(Array(10).fill(0));
+  });
+
+  const cleared = pendingLinesToApply;
+  pendingLinesToApply = 0;
 
   if(cleared){
     linesClearedTotal += cleared;
     scoreLines(cleared);
     updateGravity();
-    maybeTriggerQuestion();
+    applyLevelTheme();          // ✅ level colors
+    maybeTriggerQuestion();     // ✅ quiz every 5
   }
 
+  isClearingLines = false;
+  clearingRows = [];
   piece = nextPiece();
   updateHud();
 }
@@ -646,6 +974,23 @@ function draw(){
     }
   }
 
+  // ✅ shimmer overlay for clearing lines
+  if(isClearingLines && clearingRows.length){
+    const t = (12 - clearTicks) / 12; // 0..1
+    clearingRows.forEach(r=>{
+      // make the row itself "whiten" slightly during clear
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = 0.18 + 0.22*Math.sin((Date.now()/70) + r);
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.fillRect(0, r*grid, canvas.width, grid);
+      ctx.restore();
+
+      shimmerRowOverlay(r, t);
+    });
+  }
+
+  // piece
   ctx.fillStyle = colors[piece.name];
   piece.matrix.forEach((row,r)=>{
     row.forEach((v,c)=>{
@@ -658,11 +1003,28 @@ function draw(){
       }
     });
   });
+
+  // ✅ sparkles
+  drawParticles();
 }
 
 /* ---- main loop ---- */
 function loop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+
+  // ✅ glow decay
+  tickGlow();
+
+  // ✅ line clear animation timing
+  if(isClearingLines){
+    clearTicks--;
+    draw();
+    if(clearTicks <= 0){
+      commitLineClear();
+    }
+    requestAnimationFrame(loop);
+    return;
+  }
 
   frameCounter++;
   if(frameCounter >= gravityFrames){
@@ -680,7 +1042,7 @@ function loop(){
 
 /* ---- desktop keys ---- */
 document.addEventListener("keydown",e=>{
-  if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+  if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
   if(e.key==="ArrowLeft" && valid(piece.matrix,piece.row,piece.col-1)) piece.col--;
   if(e.key==="ArrowRight"&& valid(piece.matrix,piece.row,piece.col+1)) piece.col++;
@@ -704,9 +1066,10 @@ function bind(btn, fn){
   btn.addEventListener("click", fn);
   btn.addEventListener("touchstart", (e)=>{ e.preventDefault(); fn(); }, {passive:false});
 }
-bind(moveLeftBtn, ()=>{ if(valid(piece.matrix,piece.row,piece.col-1)) piece.col--; });
-bind(moveRightBtn,()=>{ if(valid(piece.matrix,piece.row,piece.col+1)) piece.col++; });
+bind(moveLeftBtn, ()=>{ if(!isClearingLines && valid(piece.matrix,piece.row,piece.col-1)) piece.col--; });
+bind(moveRightBtn,()=>{ if(!isClearingLines && valid(piece.matrix,piece.row,piece.col+1)) piece.col++; });
 bind(rotateBtn,   ()=>{
+  if(isClearingLines) return;
   const r = rotate(piece.matrix);
   if(valid(r,piece.row,piece.col)) piece.matrix = r;
 });
@@ -715,14 +1078,14 @@ bind(rotateBtn,   ()=>{
 let downHold=false, downTimer=null;
 if(moveDownBtn){
   moveDownBtn.addEventListener("click", ()=>{
-    if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+    if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
     if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
     else lockPiece();
   });
 
   moveDownBtn.addEventListener("touchstart", (e)=>{
     e.preventDefault();
-    if(!gameStarted || gameOver || isPaused || isPausedForQuestion) return;
+    if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
     downHold = true;
     // immediate
@@ -731,6 +1094,7 @@ if(moveDownBtn){
 
     downTimer = setInterval(()=>{
       if(!downHold) return;
+      if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
       if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
       else lockPiece();
     }, 55);
@@ -743,7 +1107,12 @@ if(moveDownBtn){
   moveDownBtn.addEventListener("touchend", stopHold);
   moveDownBtn.addEventListener("touchcancel", stopHold);
 }
+</script>
 
+<!-- =========================
+     Part 3 / 3
+     ========================= -->
+<script>
 /* ======================================================
    QUESTION GATE (works now, content later)
    - 100 questions
@@ -985,7 +1354,6 @@ function shuffle(arr){
 
 let QUESTIONS = [];
 function buildQuestions(){
-  // duplicate if you test with 1 item; later you’ll paste 100 and this stays fine
   QUESTIONS = shuffle(QUESTIONS_RAW.slice());
   if(!QUESTIONS.length) QUESTIONS = QUESTIONS_RAW.slice();
 }
@@ -998,7 +1366,7 @@ const choiceWrap = document.getElementById("choiceWrap");
 let firstTry = true;
 
 function maybeTriggerQuestion(){
-  const threshold = (currentQuestionIndex + 1) * 10;
+  const threshold = (currentQuestionIndex + 1) * 5; // ✅ every 5 lines
   if(linesClearedTotal >= threshold){
     showQuestion();
   }
@@ -1028,6 +1396,9 @@ function showQuestion(){
       if(i === q.correctIndex){
         b.classList.add("correct");
 
+        // ✅ correct sound (popup quiz)
+        safePlay(SFX.correct);
+
         // +100 ONLY if first try
         if(firstTry){
           score += 100;
@@ -1035,7 +1406,6 @@ function showQuestion(){
           updateHud();
         }
 
-        // must click correct to continue
         setTimeout(()=>{
           qOverlay.style.display = "none";
           isPausedForQuestion = false;
@@ -1043,7 +1413,6 @@ function showQuestion(){
           updateHud();
         }, 420);
       } else {
-        // wrong = no points (and keep gate locked)
         b.classList.add("wrong");
         firstTry = false;
         setTimeout(()=>b.classList.remove("wrong"), 260);
@@ -1101,7 +1470,16 @@ const startInner = document.getElementById("startOverlayInner");
 
 function startGame(){
   if(gameStarted) return;
+
+  // ✅ unlock audio on FIRST user gesture
+  unlockAudioOnce();
+
   gameStarted = true;
+
+  // ✅ theme set at start
+  applyLevelTheme();
+  tickGlow();
+  updateHud();
 
   let count = 3;
   startInner.innerHTML = `<span class="big">${count}</span>`;
@@ -1130,3 +1508,6 @@ updateHud();
 </script>
 </body>
 </html>
+  
+
+  
