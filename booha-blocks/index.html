@@ -1077,12 +1077,21 @@ function scheduleQuestionCheck(){
 
 /* ---- remove cleared rows after shimmer ---- */
 function commitLineClear(){
-  clearingRows.sort((a,b)=>b-a).forEach(r=>{
-    playfield.splice(r,1);
-    playfield.unshift(Array(10).fill(0));
+  // ✅ IMPORTANT FIX:
+  // Do NOT unshift inside the splice loop (it shifts indices and causes missed clears)
+  const rowsToClear = clearingRows.slice().sort((a,b)=>b-a);
+  const cleared = rowsToClear.length;
+
+  // remove rows (highest -> lowest)
+  rowsToClear.forEach(r=>{
+    playfield.splice(r, 1);
   });
 
-  const cleared = pendingLinesToApply;
+  // add empty rows at the top AFTER removing
+  for(let i=0;i<cleared;i++){
+    playfield.unshift(Array(10).fill(0));
+  }
+
   pendingLinesToApply = 0;
 
   if(cleared){
@@ -1093,8 +1102,12 @@ function commitLineClear(){
     /* ✅ level color + LEVEL UP sound */
     applyLevelThemeAndMaybeSound();
 
-    /* ✅ schedule quiz check safely (DON’T call maybeTriggerQuestion here) */
-    scheduleQuestionCheck();
+    // ✅ Defer quiz until AFTER clear commit + paint + short audio gap
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        maybeTriggerQuestion();
+      }, 180);
+    });
   }
 
   // ✅ finish clear ONCE
@@ -1116,7 +1129,6 @@ function draw(){
     }
   }
 
-  // ✅ shimmer overlay while clearing
   if(isClearingLines && clearingRows.length){
     const t = (12 - clearTicks) / 12;
     clearingRows.forEach(r=>{
@@ -1131,7 +1143,6 @@ function draw(){
     });
   }
 
-  // active piece
   ctx.fillStyle = colors[piece.name];
   piece.matrix.forEach((row,r)=>{
     row.forEach((v,c)=>{
