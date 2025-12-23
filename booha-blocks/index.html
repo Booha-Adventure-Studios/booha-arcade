@@ -129,6 +129,18 @@
     max-height:96vh;
   }
 
+/* ✅ shell heartbeat on line clear */
+.shell.pulse-hit{
+  animation:shellPulse 0.06s ease-out;
+}
+
+@keyframes shellPulse{
+  0%   { transform:scale(1); }
+  50%  { transform:scale(1.035); }
+  100% { transform:scale(1); }
+}
+       
+
   /* iPhone Safari bottom bar fix */
   @supports (-webkit-touch-callout:none) {
     body{ padding-bottom:calc(4vh + env(safe-area-inset-bottom, 0px)); }
@@ -789,9 +801,29 @@ function bumpGlow(lines){
   pulse2     = Math.min(1.20, pulse2     + 0.20 + 0.10 * lines);
   flash      = Math.min(1.35, flash      + 0.72 + 0.16 * lines);
 
-  // ✅ NEW: real whole-screen bloom burst
+  // ✅ real whole-screen bloom burst
   screenGlow = Math.min(1.60, screenGlow + 0.95 + 0.22 * lines);
+
+  /* ===============================
+     OPTION B: 4-LINE CLEAR BOOST
+     =============================== */
+  if(lines === 4){
+    flash      = Math.min(2.0, flash + 0.8);
+    screenGlow = Math.min(2.2, screenGlow + 1.2);
+    pulse      = Math.min(1.9, pulse + 0.6);
+  }
+
+  /* ===============================
+     OPTION A: shell heartbeat
+     =============================== */
+  const shell = document.querySelector(".shell");
+  if(shell){
+    shell.classList.remove("pulse-hit");
+    void shell.offsetWidth; // force reflow so animation retriggers
+    shell.classList.add("pulse-hit");
+  }
 }
+
 
 function tickGlow(){
   pulse *= 0.90;
