@@ -1,6 +1,7 @@
 <!-- =========================
      BOOHA BLOCKS (UPDATED)
      FULL FILE (Part 1 + Part 2 + Part 3 merged)
+     ✅ FINAL SOUND MAP + FULL SCREEN GLOW ON LINE CLEAR
      ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -32,6 +33,9 @@
 
     /* ✅ extra flash for “alive” feel */
     --flash:0;
+
+    /* ✅ NEW: full-screen bloom strength */
+    --screenGlow:0;
   }
 
   /* RESET */
@@ -63,22 +67,49 @@
     overflow:hidden;
   }
 
-  /* ✅ whole-screen flash when line clears */
+  /* ✅ NEW: true whole-screen bloom layer (stronger than ::after) */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:-6%;
+    pointer-events:none;
+    z-index:4;
+    opacity:calc(0.14 * var(--screenGlow));
+    background:
+      radial-gradient(circle at 50% 45%,
+        rgba(255,255,255,0.95) 0%,
+        rgba(255,255,255,0.0) 58%),
+      radial-gradient(circle at 20% 25%,
+        color-mix(in srgb, var(--pink) 60%, transparent) 0%,
+        transparent 60%),
+      radial-gradient(circle at 80% 75%,
+        color-mix(in srgb, var(--aqua) 60%, transparent) 0%,
+        transparent 62%);
+    filter:blur(22px);
+    mix-blend-mode:screen;
+    transition:opacity .08s ease;
+  }
+
+  /* ✅ whole-screen flash when line clears (color) */
   body::after{
     content:"";
     position:fixed;
     inset:0;
     pointer-events:none;
     z-index:5;
-    opacity:calc(0.10 * var(--flash));
+    opacity:calc(0.18 * var(--flash));
     background:
       radial-gradient(circle at 30% 30%,
-        color-mix(in srgb, var(--pink) 55%, transparent) 0%,
+        color-mix(in srgb, var(--pink) 60%, transparent) 0%,
         transparent 55%),
       radial-gradient(circle at 70% 70%,
-        color-mix(in srgb, var(--aqua) 55%, transparent) 0%,
-        transparent 60%);
+        color-mix(in srgb, var(--aqua) 60%, transparent) 0%,
+        transparent 60%),
+      radial-gradient(circle at 50% 50%,
+        rgba(255,255,255,0.20) 0%,
+        transparent 62%);
     filter:blur(14px);
+    mix-blend-mode:screen;
     transition:opacity .10s ease;
   }
 
@@ -128,15 +159,18 @@
     pointer-events:none;
     z-index:-2;
     filter:blur(14px);
-    opacity:calc(0.15 + (0.55 * var(--pulse)));
+    opacity:calc(0.12 + (0.68 * var(--pulse)) + (0.35 * var(--flash)));
     background:
       radial-gradient(circle at 30% 25%,
-        color-mix(in srgb, var(--pink) 75%, transparent) 0%,
+        color-mix(in srgb, var(--pink) 78%, transparent) 0%,
         transparent 55%),
       radial-gradient(circle at 70% 75%,
-        color-mix(in srgb, var(--aqua) 75%, transparent) 0%,
+        color-mix(in srgb, var(--aqua) 78%, transparent) 0%,
+        transparent 60%),
+      radial-gradient(circle at 50% 50%,
+        rgba(255,255,255,0.20) 0%,
         transparent 60%);
-    transition:opacity .12s ease;
+    transition:opacity .10s ease;
   }
 
   @keyframes orbGlow{
@@ -224,7 +258,7 @@
       0 0 calc(18px + (26px * var(--pulse))) color-mix(in srgb, var(--aqua) 55%, transparent),
       0 0 calc(38px + (60px * var(--pulse))) rgba(15,23,42,0.9),
       0 0 calc(10px + (22px * var(--pulse))) color-mix(in srgb, var(--pink) 45%, transparent),
-      0 0 calc(10px + (26px * var(--flash))) rgba(255,255,255,0.25);
+      0 0 calc(18px + (38px * var(--flash))) rgba(255,255,255,0.28);
     image-rendering:pixelated;
     touch-action:none;
     width:100%;
@@ -618,14 +652,16 @@
 <script>
 /* ======================================================
    Booha Blocks – Points + Speed + Question Gate
-   + ✅ Audio
-   + ✅ Quiz every 5 lines
-   + ✅ Line glimmer/sparkle clear + background pulse
-   + ✅ Level colors
-   + ✅ FIX: quiz no longer freezes (resume loop)
-   + ✅ CHANGE: all line clears use clear.mp3
-   + ✅ CHANGE: quiz-open uses full-clear.mp3
-   + ✅ FX: stronger glow/flash on line clear
+   ✅ FINAL SOUND MAP:
+     - BGM(loop): booha-tetris-january.mp3
+     - Line clear (1–4): booha-tetris-sound.mp3
+     - Quiz open: quiz.mp3
+     - Quiz correct: clear.mp3
+     - Level up: correct.mp3
+   ✅ Quiz every 5 lines
+   ✅ Line glimmer/sparkle clear + FULL SCREEN GLOW burst
+   ✅ Level colors
+   ✅ FIX: quiz no longer freezes (resume loop)
    ====================================================== */
 
 /* ---- iOS pinch zoom guard ---- */
@@ -657,24 +693,29 @@ let rafId = 0;
 let audioUnlocked = false;
 
 const SFX = {
+  /* ✅ BGM loop */
   bgm: new Audio("booha-tetris-january.mp3"),
 
-  /* ✅ all cleared lines */
-  clear: new Audio("clear.mp3"),
+  /* ✅ all line clears (1–4) */
+  lineClear: new Audio("booha-tetris-sound.mp3"),
 
-  /* ✅ quiz-open sound (repurposed full-clear.mp3) */
-  quizOpen: new Audio("full-clear.mp3"),
+  /* ✅ quiz popup open */
+  quizOpen: new Audio("quiz.mp3"),
 
   /* ✅ quiz correct */
-  correct: new Audio("correct.mp3")
+  quizCorrect: new Audio("clear.mp3"),
+
+  /* ✅ level up / next level */
+  levelUp: new Audio("correct.mp3")
 };
 
 SFX.bgm.loop = true;
 SFX.bgm.volume = 0.28;
 
-SFX.clear.volume = 0.70;
-SFX.quizOpen.volume = 0.72;
-SFX.correct.volume = 0.78;
+SFX.lineClear.volume   = 0.78;
+SFX.quizOpen.volume    = 0.78;
+SFX.quizCorrect.volume = 0.82;
+SFX.levelUp.volume     = 0.82;
 
 function safePlay(a, {restart=true} = {}){
   if(!audioUnlocked || !a) return;
@@ -720,44 +761,56 @@ function calcLevel(){
   // level up every 10 lines (classic feel)
   return Math.max(1, 1 + Math.floor(linesClearedTotal / 10));
 }
-function applyLevelTheme(){
+
+function applyLevelThemeAndMaybeSound(){
   const lvl = calcLevel();
   if(lvl === currentLevel) return;
-  currentLevel = lvl;
 
+  // ✅ LEVEL UP SOUND
+  safePlay(SFX.levelUp);
+
+  currentLevel = lvl;
   const t = LEVEL_THEMES[(lvl - 1) % LEVEL_THEMES.length];
   document.documentElement.style.setProperty("--pink", t.p);
   document.documentElement.style.setProperty("--aqua", t.s);
 }
 
 /* =========================
-   ✅ REACTIVE GLOW (background)
+   ✅ REACTIVE GLOW (background + full screen)
    ========================= */
-let pulse = 0;   // fast pulse
-let pulse2 = 0;  // slower glow
-let flash = 0;   // quick “alive” flash
+let pulse = 0;       // fast pulse
+let pulse2 = 0;      // slower glow
+let flash = 0;       // quick color flash
+let screenGlow = 0;  // ✅ NEW: full-screen bloom
 
 function bumpGlow(lines){
   // stronger when more lines clear
-  pulse  = Math.min(1.35, pulse  + 0.26 + 0.16 * lines);
-  pulse2 = Math.min(1.10, pulse2 + 0.20 + 0.10 * lines);
-  flash  = Math.min(1.00, flash  + 0.55 + 0.12 * lines);
+  pulse      = Math.min(1.55, pulse      + 0.26 + 0.16 * lines);
+  pulse2     = Math.min(1.20, pulse2     + 0.20 + 0.10 * lines);
+  flash      = Math.min(1.35, flash      + 0.72 + 0.16 * lines);
+
+  // ✅ NEW: real whole-screen bloom burst
+  screenGlow = Math.min(1.60, screenGlow + 0.95 + 0.22 * lines);
 }
 
 function tickGlow(){
   pulse *= 0.90;
   pulse2 *= 0.965;
   flash *= 0.78;
+  screenGlow *= 0.70;
 
   document.documentElement.style.setProperty("--pulse",  pulse.toFixed(3));
   document.documentElement.style.setProperty("--pulse2", pulse2.toFixed(3));
   document.documentElement.style.setProperty("--flash",  flash.toFixed(3));
+  document.documentElement.style.setProperty("--screenGlow", screenGlow.toFixed(3));
 }
 
 /* ---- HUD ---- */
 const linesEl = document.getElementById("linesCount");
 const scoreEl = document.getElementById("scoreValue");
 const nextAtEl = document.getElementById("nextAt");
+
+let currentQuestionIndex = 0; // declared here so updateHud works
 
 function updateHud(){
   linesEl.textContent = linesClearedTotal;
@@ -853,7 +906,6 @@ let pendingLinesToApply = 0;
 
 const particles = [];
 function spawnClearParticles(rows){
-  // spawn sparkles across each cleared row
   rows.forEach(r=>{
     for(let i=0;i<26;i++){
       const x = (Math.random()*10) * grid + (Math.random()*8);
@@ -876,7 +928,7 @@ function drawParticles(){
     const p = particles[i];
     p.x += p.vx;
     p.y += p.vy;
-    p.vy += 0.04; // tiny gravity
+    p.vy += 0.04;
     p.life -= p.decay;
 
     if(p.life <= 0){
@@ -894,7 +946,6 @@ function drawParticles(){
     ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
     ctx.fill();
 
-    // tiny gold tint sparkle
     ctx.globalAlpha = 0.35 * a;
     ctx.shadowBlur = 14;
     ctx.shadowColor = "rgba(255,209,102,0.9)";
@@ -907,7 +958,6 @@ function drawParticles(){
 }
 
 function shimmerRowOverlay(r, t){
-  // a moving "shine" sweep across the row
   const y = r * grid;
   const phase = (t % 1);
   const sweepX = (-grid*2) + phase * (canvas.width + grid*4);
@@ -924,7 +974,6 @@ function shimmerRowOverlay(r, t){
   ctx.fillStyle = g;
   ctx.fillRect(0, y, canvas.width, grid);
 
-  // sparkle flicker
   ctx.globalAlpha = 0.18 + 0.18*Math.sin((Date.now()/60) + r);
   ctx.fillStyle = "rgba(255,209,102,1)";
   for(let i=0;i<6;i++){
@@ -949,7 +998,6 @@ function lockPiece(){
     }
   }
 
-  // ✅ find full rows FIRST, then animate, then remove
   const fullRows = [];
   for(let r=0;r<20;r++){
     if(playfield[r].every(Boolean)) fullRows.push(r);
@@ -958,17 +1006,17 @@ function lockPiece(){
   if(fullRows.length){
     isClearingLines = true;
     clearingRows = fullRows.slice();
-    clearTicks = 12; // ~200ms shimmer
+    clearTicks = 12;
     pendingLinesToApply = fullRows.length;
 
-    /* ✅ CHANGE: all cleared lines use clear.mp3 */
-    safePlay(SFX.clear);
+    /* ✅ FINAL: all cleared lines use booha-tetris-sound.mp3 */
+    safePlay(SFX.lineClear);
 
-    /* ✅ FX: glow/flash */
+    /* ✅ FX: full-screen + shell + canvas glow burst */
     bumpGlow(fullRows.length);
 
     spawnClearParticles(fullRows);
-    return; // wait to actually remove rows
+    return;
   }
 
   piece = nextPiece();
@@ -977,7 +1025,6 @@ function lockPiece(){
 
 /* ---- remove cleared rows after shimmer ---- */
 function commitLineClear(){
-  // remove from bottom up
   clearingRows.sort((a,b)=>b-a).forEach(r=>{
     playfield.splice(r,1);
     playfield.unshift(Array(10).fill(0));
@@ -990,8 +1037,11 @@ function commitLineClear(){
     linesClearedTotal += cleared;
     scoreLines(cleared);
     updateGravity();
-    applyLevelTheme();          // ✅ level colors
-    maybeTriggerQuestion();     // ✅ quiz every 5
+
+    /* ✅ level color + LEVEL UP sound */
+    applyLevelThemeAndMaybeSound();
+
+    maybeTriggerQuestion();
   }
 
   isClearingLines = false;
@@ -1012,11 +1062,9 @@ function draw(){
     }
   }
 
-  // ✅ shimmer overlay for clearing lines
   if(isClearingLines && clearingRows.length){
-    const t = (12 - clearTicks) / 12; // 0..1
+    const t = (12 - clearTicks) / 12;
     clearingRows.forEach(r=>{
-      // make the row itself "whiten" slightly during clear
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       ctx.globalAlpha = 0.18 + 0.22*Math.sin((Date.now()/70) + r);
@@ -1028,7 +1076,6 @@ function draw(){
     });
   }
 
-  // piece
   ctx.fillStyle = colors[piece.name];
   piece.matrix.forEach((row,r)=>{
     row.forEach((v,c)=>{
@@ -1042,7 +1089,6 @@ function draw(){
     });
   });
 
-  // ✅ sparkles
   drawParticles();
 }
 
@@ -1050,10 +1096,8 @@ function draw(){
 function loop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
 
-  // ✅ glow decay
   tickGlow();
 
-  // ✅ line clear animation timing
   if(isClearingLines){
     clearTicks--;
     draw();
@@ -1078,7 +1122,7 @@ function loop(){
   rafId = requestAnimationFrame(loop);
 }
 
-/* ✅ restart loop safely (used after quiz closes) */
+/* ✅ restart loop safely */
 function resumeLoop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
   if(rafId) cancelAnimationFrame(rafId);
@@ -1133,7 +1177,6 @@ if(moveDownBtn){
     if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
     downHold = true;
-    // immediate
     if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
     else lockPiece();
 
@@ -1163,10 +1206,10 @@ if(moveDownBtn){
    - +100 only if correct on FIRST TRY
    - cannot continue until correct
    - ✅ FIX: resume game loop after correct (no freeze)
-   - ✅ SOUND: play full-clear.mp3 when quiz opens
+   - ✅ SOUND MAP:
+       quiz opens -> quiz.mp3
+       quiz correct -> clear.mp3
    ====================================================== */
-
-let currentQuestionIndex = 0;
 
 const QUESTIONS_RAW = [
   { question: "「私（わたし）」は英語で？", choices: ["I", "you", "me", "my"], correctIndex: 0 },
@@ -1236,7 +1279,7 @@ let firstTry = true;
 let questionOpen = false;
 
 function maybeTriggerQuestion(){
-  const threshold = (currentQuestionIndex + 1) * 5; // ✅ every 5 lines
+  const threshold = (currentQuestionIndex + 1) * 5;
   if(linesClearedTotal >= threshold){
     showQuestion();
   }
@@ -1249,10 +1292,9 @@ function showQuestion(){
   isPausedForQuestion = true;
   firstTry = true;
 
-  /* ✅ play quiz-open sound */
+  /* ✅ FINAL: quiz-open sound */
   safePlay(SFX.quizOpen);
 
-  // ensure endless loop + reshuffle after cycle
   if(currentQuestionIndex % QUESTIONS.length === 0){
     buildQuestions();
   }
@@ -1272,10 +1314,9 @@ function showQuestion(){
       if(i === q.correctIndex){
         b.classList.add("correct");
 
-        // ✅ correct sound
-        safePlay(SFX.correct);
+        /* ✅ FINAL: quiz correct sound */
+        safePlay(SFX.quizCorrect);
 
-        // +100 ONLY if first try
         if(firstTry){
           score += 100;
           updateGravity();
@@ -1289,8 +1330,6 @@ function showQuestion(){
           updateHud();
 
           questionOpen = false;
-
-          /* ✅ FIX: resume the game loop so it never freezes */
           resumeLoop();
         }, 420);
       } else {
@@ -1355,13 +1394,16 @@ const startInner = document.getElementById("startOverlayInner");
 function startGame(){
   if(gameStarted) return;
 
-  // ✅ unlock audio on FIRST user gesture
   unlockAudioOnce();
 
   gameStarted = true;
 
-  // ✅ theme set at start
-  applyLevelTheme();
+  // ✅ theme set at start (no level-up sound here)
+  currentLevel = calcLevel();
+  const t = LEVEL_THEMES[(currentLevel - 1) % LEVEL_THEMES.length];
+  document.documentElement.style.setProperty("--pink", t.p);
+  document.documentElement.style.setProperty("--aqua", t.s);
+
   tickGlow();
   updateHud();
 
