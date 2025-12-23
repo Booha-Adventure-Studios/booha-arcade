@@ -704,42 +704,63 @@ let rafId = 0;
    ========================= */
 let audioUnlocked = false;
 
-const SFX = {
-  /* ✅ BGM loop */
-  bgm: new Audio("booha-tetris-january.mp3"),
-
-  /* ✅ all line clears (1–4) */
-  lineClear: new Audio("booha-tetris-sound.mp3"),
-
-  /* ✅ quiz popup open */
-  quizOpen: new Audio("quiz.mp3"),
-
-  /* ✅ quiz correct */
-  quizCorrect: new Audio("clear.mp3"),
-
-  /* ✅ level up / next level */
-  levelUp: new Audio("correct.mp3")
-};
-
-SFX.bgm.loop = true;
-SFX.bgm.volume = 0.28;
-
-SFX.lineClear.volume   = 0.78;
-SFX.quizOpen.volume    = 0.78;
-SFX.quizCorrect.volume = 0.82;
-SFX.levelUp.volume     = 0.82;
-
-function safePlay(a, {restart=true} = {}){
-  if(!audioUnlocked || !a) return;
+// use fresh instances for SFX so they always fire (Safari-friendly)
+function playSFX(url, vol=1){
+  if(!audioUnlocked) return;
   try{
-    if(restart){
-      a.pause();
-      a.currentTime = 0;
-    }
+    const a = new Audio(url);
+    a.preload = "auto";
+    a.volume = vol;
+    a.currentTime = 0;
     const p = a.play();
     if(p && typeof p.catch === "function") p.catch(()=>{});
   }catch(_){}
 }
+
+const SFX = {
+  bgm: new Audio("booha-tetris-january.mp3"),
+  lineClearUrl: "booha-tetris-sound.mp3",
+  quizOpenUrl: "quiz.mp3",
+  quizCorrectUrl: "clear.mp3",
+  levelUpUrl: "correct.mp3",
+};
+
+SFX.bgm.loop = true;
+SFX.bgm.preload = "auto";
+SFX.bgm.volume = 0.28;
+
+async function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+
+  // ✅ "prime" Safari: one silent play/pause per file AFTER the user tap
+  // (fast + prevents “no sound ever” on iOS)
+  const prime = async (url)=>{
+    try{
+      const a = new Audio(url);
+      a.preload = "auto";
+      a.volume = 0.0001;
+      const p = a.play();
+      if(p && typeof p.then === "function"){
+        await p;
+        a.pause();
+        a.currentTime = 0;
+      }
+    }catch(_){}
+  };
+
+  await prime("booha-tetris-sound.mp3");
+  await prime("quiz.mp3");
+  await prime("clear.mp3");
+  await prime("correct.mp3");
+
+  // start BGM
+  try{
+    const p = SFX.bgm.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+  }catch(_){}
+}
+
 
 function unlockAudioOnce(){
   if(audioUnlocked) return;
@@ -1036,24 +1057,36 @@ function lockPiece(){
   }
 
   if(fullRows.length){
-    isClearingLines = true;
-    clearingRows = fullRows.slice();
-    clearTicks = 12;
-    pendingLinesToApply = fullRows.length;
+  isClearingLines = true;
+  clearingRows = fullRows.slice();
+  clearTicks = 12;
+  pendingLinesToApply = fullRows.length;
 
-    /* ✅ FINAL: all cleared lines use booha-tetris-sound.mp3 */
-    safePlay(SFX.lineClear);
-
-    /* ✅ FX: full-screen + shell + canvas glow burst */
-    bumpGlow(fullRows.length);
-
-    spawnClearParticles(fullRows);
-    return;
+  /* ✅ LINE CLEAR SFX (robust on Safari/iOS)
+     - Reusing the same Audio element can fail on iOS
+     - So we spawn a fresh Audio instance for each clear
+  */
+  if(audioUnlocked){
+    try{
+      const a = new Audio("booha-tetris-sound.mp3");
+      a.volume = (SFX.lineClear && typeof SFX.lineClear.volume === "number") ? SFX.lineClear.volume : 0.78;
+      a.currentTime = 0;
+      const p = a.play();
+      if(p && typeof p.catch === "function") p.catch(()=>{});
+    }catch(_){}
   }
 
-  piece = nextPiece();
-  updateHud();
+  /* ✅ FX: full-screen + shell + canvas glow burst */
+  bumpGlow(fullRows.length);
+
+  spawnClearParticles(fullRows);
+  return;
 }
+
+piece = nextPiece();
+updateHud();
+}
+
 
 /* =========================
    ✅ SAFE QUESTION SCHEDULER
