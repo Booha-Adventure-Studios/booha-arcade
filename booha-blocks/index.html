@@ -1101,8 +1101,6 @@ function draw(){
     }
   }
 
-
-  function maybeTriggerQuestion(){   
   if(isClearingLines && clearingRows.length){
     const t = (12 - clearTicks) / 12;
     clearingRows.forEach(r=>{
@@ -1132,6 +1130,7 @@ function draw(){
 
   drawParticles();
 }
+
 
 /* ---- main loop ---- */
 function loop(){
@@ -1320,11 +1319,13 @@ let firstTry = true;
 let questionOpen = false;
 
 function maybeTriggerQuestion(){
+  if(isClearingLines) return; // ✅ never interrupt line clears
   const threshold = (currentQuestionIndex + 1) * 5;
   if(linesClearedTotal >= threshold){
     showQuestion();
   }
 }
+
 
 function showQuestion(){
   if(questionOpen) return;
