@@ -1073,14 +1073,21 @@ function commitLineClear(){
     /* ✅ level color + LEVEL UP sound */
     applyLevelThemeAndMaybeSound();
 
-    maybeTriggerQuestion();
+    // ✅ Defer quiz until AFTER clear commit + paint + short audio gap
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{
+        maybeTriggerQuestion();
+      }, 180); // safe gap after clear animation + sound
+    });
   }
 
+  // ✅ finish clear ONCE
   isClearingLines = false;
   clearingRows = [];
   piece = nextPiece();
   updateHud();
 }
+
 
 /* ---- draw ---- */
 function draw(){
@@ -1094,6 +1101,8 @@ function draw(){
     }
   }
 
+
+  function maybeTriggerQuestion(){   
   if(isClearingLines && clearingRows.length){
     const t = (12 - clearTicks) / 12;
     clearingRows.forEach(r=>{
