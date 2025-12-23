@@ -1,7 +1,6 @@
 <!-- =========================
      BOOHA BLOCKS (UPDATED)
-     FULL FILE (Part 1 + Part 2 + Part 3 merged)
-     ✅ FINAL SOUND MAP + FULL SCREEN GLOW ON LINE CLEAR
+     FULL FILE (sound + glow + quiz)
      ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -129,17 +128,13 @@
     max-height:96vh;
   }
 
-/* ✅ shell heartbeat on line clear */
-.shell.pulse-hit{
-  animation:shellPulse 0.06s ease-out;
-}
-
-@keyframes shellPulse{
-  0%   { transform:scale(1); }
-  50%  { transform:scale(1.035); }
-  100% { transform:scale(1); }
-}
-       
+  /* ✅ shell heartbeat on line clear */
+  .shell.pulse-hit{ animation:shellPulse 0.06s ease-out; }
+  @keyframes shellPulse{
+    0%   { transform:scale(1); }
+    50%  { transform:scale(1.035); }
+    100% { transform:scale(1); }
+  }
 
   /* iPhone Safari bottom bar fix */
   @supports (-webkit-touch-callout:none) {
@@ -409,7 +404,6 @@
     z-index:50;
   }
 
-  /* ✅ more fun + slightly bigger */
   .q-card{
     width:min(92vw,520px);
     border-radius:22px;
@@ -428,7 +422,6 @@
     color:#f9fafb;
   }
 
-  /* ✅ animated header stripe */
   .q-card::before{
     content:"";
     position:absolute;
@@ -451,7 +444,6 @@
     100%{transform:translateX(-12%) rotate(-6deg);}
   }
 
-  /* ✅ faint sparkle dots inside popup */
   .q-card::after{
     content:"";
     position:absolute;inset:0;
@@ -662,29 +654,19 @@
 </div>
 
 <script>
-/* ======================================================
-   Booha Blocks – Points + Speed + Question Gate
-   ✅ FINAL SOUND MAP:
-     - BGM(loop): booha-tetris-january.mp3
-     - Line clear (1–4): booha-tetris-sound.mp3
-     - Quiz open: quiz.mp3
-     - Quiz correct: clear.mp3
-     - Level up: correct.mp3
-   ✅ Quiz every 5 lines
-   ✅ Line glimmer/sparkle clear + FULL SCREEN GLOW burst
-   ✅ Level colors
-   ✅ FIX: quiz no longer freezes (resume loop)
-   ====================================================== */
+/* ==============================
+   BOOHA BLOCKS: GAME CORE
+   ============================== */
 
-/* ---- iOS pinch zoom guard ---- */
+/* iOS pinch zoom guard */
 document.addEventListener('gesturestart', e => e.preventDefault());
 
-/* ---- canvas ---- */
+/* canvas */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const grid = 32;
 
-/* ---- state ---- */
+/* state */
 let gameStarted = false;
 let gameOver = false;
 let isPaused = false;
@@ -693,158 +675,173 @@ let isPausedForQuestion = false;
 let score = 0;
 let linesClearedTotal = 0;
 
-let gravityFrames = 40; // start slow
+let gravityFrames = 40;
 let frameCounter = 0;
 
-/* ✅ loop safety (prevents double loops) */
+/* loop safety */
 let rafId = 0;
 
-/* =========================
-   ✅ AUDIO (same folder)
-   ========================= */
+/* ==============================
+   AUDIO (same folder) ✅ FIXED
+   ============================== */
 let audioUnlocked = false;
 
-// use fresh instances for SFX so they always fire (Safari-friendly)
+/* audio files */
+const AUDIO_FILES = {
+  bgm: "booha-tetris-january.mp3",
+  lineClear: "booha-tetris-sound.mp3",
+  quizOpen: "quiz.mp3",
+  quizCorrect: "clear.mp3",
+  levelUp: "correct.mp3",
+};
+
+/* persistent audio objects (use for longer sounds + no overlap needed) */
+const SFX = {
+  bgm: new Audio(AUDIO_FILES.bgm),
+  quizOpen: new Audio(AUDIO_FILES.quizOpen),
+  quizCorrect: new Audio(AUDIO_FILES.quizCorrect),
+  levelUp: new Audio(AUDIO_FILES.levelUp),
+};
+
+/* configure */
+SFX.bgm.loop = true;
+SFX.bgm.preload = "auto";
+SFX.bgm.volume = 0.28;
+
+SFX.quizOpen.preload = "auto";
+SFX.quizOpen.volume = 0.90;
+
+SFX.quizCorrect.preload = "auto";
+SFX.quizCorrect.volume = 0.90;
+
+SFX.levelUp.preload = "auto";
+SFX.levelUp.volume = 0.90;
+
+/* robust play helper */
+async function safePlay(audio, opts={}){
+  if(!audioUnlocked || !audio) return;
+
+  const restart = opts.restart !== false; // default true
+  try{
+    if(restart){
+      try{ audio.pause(); audio.currentTime = 0; }catch(_){}
+    }
+    const p = audio.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+  }catch(_){}
+}
+
+/* Safari-safe one-shot SFX (fresh instance) */
 function playSFX(url, vol=1){
   if(!audioUnlocked) return;
   try{
     const a = new Audio(url);
     a.preload = "auto";
     a.volume = vol;
-    a.currentTime = 0;
+    try{ a.currentTime = 0; }catch(_){}
     const p = a.play();
     if(p && typeof p.catch === "function") p.catch(()=>{});
   }catch(_){}
 }
 
-const SFX = {
-  bgm: new Audio("booha-tetris-january.mp3"),
-  lineClearUrl: "booha-tetris-sound.mp3",
-  quizOpenUrl: "quiz.mp3",
-  quizCorrectUrl: "clear.mp3",
-  levelUpUrl: "correct.mp3",
-};
+/* prime short silent play to unlock on iOS */
+async function primeUrl(url){
+  try{
+    const a = new Audio(url);
+    a.preload = "auto";
+    a.volume = 0.0001;
+    const p = a.play();
+    if(p && typeof p.then === "function"){
+      await p;
+      a.pause();
+      a.currentTime = 0;
+    }
+  }catch(_){}
+}
 
-SFX.bgm.loop = true;
-SFX.bgm.preload = "auto";
-SFX.bgm.volume = 0.28;
-
+/* ✅ ONE unlockAudioOnce (no duplicates) */
 async function unlockAudioOnce(){
   if(audioUnlocked) return;
   audioUnlocked = true;
 
-  // ✅ "prime" Safari: one silent play/pause per file AFTER the user tap
-  // (fast + prevents “no sound ever” on iOS)
-  const prime = async (url)=>{
-    try{
-      const a = new Audio(url);
-      a.preload = "auto";
-      a.volume = 0.0001;
-      const p = a.play();
-      if(p && typeof p.then === "function"){
-        await p;
-        a.pause();
-        a.currentTime = 0;
-      }
-    }catch(_){}
-  };
-
-  await prime("booha-tetris-sound.mp3");
-  await prime("quiz.mp3");
-  await prime("clear.mp3");
-  await prime("correct.mp3");
+  // warm/prime small clips (prevents “no sound ever” on iOS)
+  await primeUrl(AUDIO_FILES.lineClear);
+  await primeUrl(AUDIO_FILES.quizOpen);
+  await primeUrl(AUDIO_FILES.quizCorrect);
+  await primeUrl(AUDIO_FILES.levelUp);
 
   // start BGM
-  try{
-    const p = SFX.bgm.play();
-    if(p && typeof p.catch === "function") p.catch(()=>{});
-  }catch(_){}
+  await safePlay(SFX.bgm, {restart:false});
 }
 
-
-function unlockAudioOnce(){
-  if(audioUnlocked) return;
-  audioUnlocked = true;
-
-  // iOS-friendly: load but do NOT "play all at once"
-  try{
-    Object.values(SFX).forEach(a=>a.load());
-  }catch(_){}
-
-  // Start BGM after unlock
+/* pause/resume BGM with UI pauses */
+function pauseBGM(){
+  try{ SFX.bgm.pause(); }catch(_){}
+}
+function resumeBGM(){
+  if(!audioUnlocked) return;
+  if(gameOver) return;
+  if(!gameStarted) return;
+  if(isPaused || isPausedForQuestion) return;
   safePlay(SFX.bgm, {restart:false});
 }
 
-/* =========================
-   ✅ LEVEL THEMES (distinct)
-   ========================= */
+/* ==============================
+   LEVEL THEMES
+   ============================== */
 const LEVEL_THEMES = [
-  {p:"#7dd3fc", s:"#a7f3d0"}, // 1 ice blue + mint
-  {p:"#f472b6", s:"#93c5fd"}, // 2 pink + sky
-  {p:"#34d399", s:"#fde047"}, // 3 mint + sun
-  {p:"#a855f7", s:"#f59e0b"}, // 4 violet + amber
-  {p:"#fb7185", s:"#22c55e"}, // 5 coral + green
-  {p:"#06b6d4", s:"#f97316"}, // 6 cyan + orange
-  {p:"#e879f9", s:"#7dd3fc"}, // 7 neon pink + aqua
-  {p:"#facc15", s:"#60a5fa"}, // 8 gold + blue
+  {p:"#7dd3fc", s:"#a7f3d0"},
+  {p:"#f472b6", s:"#93c5fd"},
+  {p:"#34d399", s:"#fde047"},
+  {p:"#a855f7", s:"#f59e0b"},
+  {p:"#fb7185", s:"#22c55e"},
+  {p:"#06b6d4", s:"#f97316"},
+  {p:"#e879f9", s:"#7dd3fc"},
+  {p:"#facc15", s:"#60a5fa"},
 ];
 
 let currentLevel = 1;
-function calcLevel(){
-  // level up every 10 lines (classic feel)
-  return Math.max(1, 1 + Math.floor(linesClearedTotal / 10));
-}
+function calcLevel(){ return Math.max(1, 1 + Math.floor(linesClearedTotal / 10)); }
 
 function applyLevelThemeAndMaybeSound(){
   const lvl = calcLevel();
   if(lvl === currentLevel) return;
 
-  // ✅ LEVEL UP SOUND
   safePlay(SFX.levelUp);
-
   currentLevel = lvl;
+
   const t = LEVEL_THEMES[(lvl - 1) % LEVEL_THEMES.length];
   document.documentElement.style.setProperty("--pink", t.p);
   document.documentElement.style.setProperty("--aqua", t.s);
 }
 
-/* =========================
-   ✅ REACTIVE GLOW (background + full screen)
-   ========================= */
-let pulse = 0;       // fast pulse
-let pulse2 = 0;      // slower glow
-let flash = 0;       // quick color flash
-let screenGlow = 0;  // ✅ NEW: full-screen bloom
+/* ==============================
+   REACTIVE GLOW
+   ============================== */
+let pulse = 0;
+let pulse2 = 0;
+let flash = 0;
+let screenGlow = 0;
 
 function bumpGlow(lines){
-  // stronger when more lines clear
   pulse      = Math.min(1.55, pulse      + 0.26 + 0.16 * lines);
   pulse2     = Math.min(1.20, pulse2     + 0.20 + 0.10 * lines);
   flash      = Math.min(1.35, flash      + 0.72 + 0.16 * lines);
-
-  // ✅ real whole-screen bloom burst
   screenGlow = Math.min(1.60, screenGlow + 0.95 + 0.22 * lines);
 
-  /* ===============================
-     OPTION B: 4-LINE CLEAR BOOST
-     =============================== */
   if(lines === 4){
     flash      = Math.min(2.0, flash + 0.8);
     screenGlow = Math.min(2.2, screenGlow + 1.2);
     pulse      = Math.min(1.9, pulse + 0.6);
   }
 
-  /* ===============================
-     OPTION A: shell heartbeat
-     =============================== */
   const shell = document.querySelector(".shell");
   if(shell){
     shell.classList.remove("pulse-hit");
-    void shell.offsetWidth; // force reflow so animation retriggers
+    void shell.offsetWidth;
     shell.classList.add("pulse-hit");
   }
 }
-
 
 function tickGlow(){
   pulse *= 0.90;
@@ -858,26 +855,26 @@ function tickGlow(){
   document.documentElement.style.setProperty("--screenGlow", screenGlow.toFixed(3));
 }
 
-/* ---- HUD ---- */
+/* HUD */
 const linesEl = document.getElementById("linesCount");
 const scoreEl = document.getElementById("scoreValue");
 const nextAtEl = document.getElementById("nextAt");
 
-let currentQuestionIndex = 0; // declared here so updateHud works
+let currentQuestionIndex = 0;
 
 function updateHud(){
   linesEl.textContent = linesClearedTotal;
   scoreEl.textContent = score;
-  nextAtEl.textContent = (currentQuestionIndex + 1) * 5; // ✅ every 5 lines
+  nextAtEl.textContent = (currentQuestionIndex + 1) * 5;
 }
 
-/* ---- playfield ---- */
+/* playfield */
 const playfield = [];
 for(let r = -2; r < 20; r++){
   playfield[r] = Array(10).fill(0);
 }
 
-/* ---- pieces ---- */
+/* pieces */
 const tetrominos = {
   I:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
   J:[[1,0,0],[1,1,1],[0,0,0]],
@@ -892,7 +889,7 @@ const colors = {
   S:"#4ade80", Z:"#fb7185", J:"#a855f7", L:"#f97316"
 };
 
-/* ---- bag random ---- */
+/* bag random */
 const bag = [];
 function refillBag(){
   const pieces = Object.keys(tetrominos);
@@ -914,7 +911,7 @@ function nextPiece(){
 }
 let piece = nextPiece();
 
-/* ---- collision ---- */
+/* collision */
 function valid(matrix,row,col){
   for(let r=0;r<matrix.length;r++){
     for(let c=0;c<matrix[r].length;c++){
@@ -931,31 +928,29 @@ function valid(matrix,row,col){
   return true;
 }
 
-/* ---- rotate ---- */
+/* rotate */
 function rotate(m){
   return m[0].map((_,i)=>m.map(r=>r[i]).reverse());
 }
 
-/* ---- scoring (lines double) ---- */
+/* scoring */
 function scoreLines(lines){
   if(lines <= 0) return;
-  const points = 10 * (2 ** (lines - 1)); // 1=10,2=20,3=40,4=80
+  const points = 10 * (2 ** (lines - 1));
   score += points;
 }
 
-/* ---- speed scaling (tetris-like) ---- */
+/* speed scaling */
 function updateGravity(){
-  // score-based speed: slow at start, faster as score grows
   gravityFrames = Math.max(8, 40 - Math.floor(score / 200));
 }
 
-/* =========================
-   ✅ LINE CLEAR FX (glimmer + sparkles)
-   ========================= */
+/* ==============================
+   LINE CLEAR FX
+   ============================== */
 let isClearingLines = false;
 let clearingRows = [];
 let clearTicks = 0;
-let pendingLinesToApply = 0;
 
 const particles = [];
 function spawnClearParticles(rows){
@@ -1037,13 +1032,14 @@ function shimmerRowOverlay(r, t){
   ctx.restore();
 }
 
-/* ---- lock ---- */
+/* lock */
 function lockPiece(){
   for(let r=0;r<piece.matrix.length;r++){
     for(let c=0;c<piece.matrix[r].length;c++){
       if(piece.matrix[r][c]){
         if(piece.row+r < 0){
           gameOver = true;
+          pauseBGM();
           return;
         }
         playfield[piece.row+r][piece.col+c] = piece.name;
@@ -1057,100 +1053,49 @@ function lockPiece(){
   }
 
   if(fullRows.length){
-  isClearingLines = true;
-  clearingRows = fullRows.slice();
-  clearTicks = 12;
-  pendingLinesToApply = fullRows.length;
+    isClearingLines = true;
+    clearingRows = fullRows.slice();
+    clearTicks = 12;
 
-  /* ✅ LINE CLEAR SFX (robust on Safari/iOS)
-     - Reusing the same Audio element can fail on iOS
-     - So we spawn a fresh Audio instance for each clear
-  */
-  if(audioUnlocked){
-    try{
-      const a = new Audio("booha-tetris-sound.mp3");
-      a.volume = (SFX.lineClear && typeof SFX.lineClear.volume === "number") ? SFX.lineClear.volume : 0.78;
-      a.currentTime = 0;
-      const p = a.play();
-      if(p && typeof p.catch === "function") p.catch(()=>{});
-    }catch(_){}
+    // ✅ LINE CLEAR SFX (fresh instance)
+    playSFX(AUDIO_FILES.lineClear, 0.78);
+
+    bumpGlow(fullRows.length);
+    spawnClearParticles(fullRows);
+
+    return;
   }
 
-  /* ✅ FX: full-screen + shell + canvas glow burst */
-  bumpGlow(fullRows.length);
-
-  spawnClearParticles(fullRows);
-  return;
+  piece = nextPiece();
+  updateHud();
 }
 
-piece = nextPiece();
-updateHud();
-}
-
-
-/* =========================
-   ✅ SAFE QUESTION SCHEDULER
-   - prevents “game won’t open” crashes
-   - prevents quiz from interrupting clears
-   ========================= */
-let pendingQuestionCheck = false;
-let questionTimer = null;
-
-function scheduleQuestionCheck(){
-  // cancel older schedule (if multiple clears happen quickly)
-  if(questionTimer){ clearTimeout(questionTimer); questionTimer = null; }
-
-  // wait 1 paint + small gap so SFX / shimmer settle
-  requestAnimationFrame(()=>{
-    questionTimer = setTimeout(()=>{
-      pendingQuestionCheck = true; // loop will handle it safely
-    }, 180);
-  });
-}
-
-/* ---- remove cleared rows after shimmer ---- */
+/* remove cleared rows after shimmer */
 function commitLineClear(){
-  // ✅ IMPORTANT FIX:
-  // Do NOT unshift inside the splice loop (it shifts indices and causes missed clears)
   const rowsToClear = clearingRows.slice().sort((a,b)=>b-a);
   const cleared = rowsToClear.length;
 
-  // remove rows (highest -> lowest)
-  rowsToClear.forEach(r=>{
-    playfield.splice(r, 1);
-  });
-
-  // add empty rows at the top AFTER removing
-  for(let i=0;i<cleared;i++){
-    playfield.unshift(Array(10).fill(0));
-  }
-
-  pendingLinesToApply = 0;
+  rowsToClear.forEach(r=>{ playfield.splice(r, 1); });
+  for(let i=0;i<cleared;i++){ playfield.unshift(Array(10).fill(0)); }
 
   if(cleared){
     linesClearedTotal += cleared;
     scoreLines(cleared);
     updateGravity();
-
-    /* ✅ level color + LEVEL UP sound */
     applyLevelThemeAndMaybeSound();
 
-    // ✅ Defer quiz until AFTER clear commit + paint + short audio gap
     requestAnimationFrame(()=>{
-      setTimeout(()=>{
-        maybeTriggerQuestion();
-      }, 180);
+      setTimeout(()=>{ maybeTriggerQuestion(); }, 180);
     });
   }
 
-  // ✅ finish clear ONCE
   isClearingLines = false;
   clearingRows = [];
   piece = nextPiece();
   updateHud();
 }
 
-/* ---- draw ---- */
+/* draw */
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -1192,19 +1137,11 @@ function draw(){
   drawParticles();
 }
 
-/* ---- main loop ---- */
+/* main loop */
 function loop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
 
   tickGlow();
-
-  // ✅ if a quiz check was scheduled, do it ONLY when stable
-  if(pendingQuestionCheck && !isClearingLines){
-    pendingQuestionCheck = false;
-    if(typeof maybeTriggerQuestion === "function"){
-      maybeTriggerQuestion();
-    }
-  }
 
   if(isClearingLines){
     clearTicks--;
@@ -1230,14 +1167,15 @@ function loop(){
   rafId = requestAnimationFrame(loop);
 }
 
-/* ✅ restart loop safely */
+/* restart loop safely */
 function resumeLoop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
   if(rafId) cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
+  resumeBGM();
 }
 
-/* ---- desktop keys ---- */
+/* desktop keys */
 document.addEventListener("keydown",e=>{
   if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
@@ -1252,7 +1190,7 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-/* ---- mobile buttons ---- */
+/* mobile buttons */
 const moveLeftBtn  = document.getElementById("moveLeftBtn");
 const moveRightBtn = document.getElementById("moveRightBtn");
 const rotateBtn    = document.getElementById("rotateBtn");
@@ -1306,18 +1244,9 @@ if(moveDownBtn){
 </script>
 
 <script>
-/* ======================================================
+/* ==============================
    QUESTION GATE
-   - 100 questions
-   - shuffle
-   - loop forever
-   - +100 only if correct on FIRST TRY
-   - cannot continue until correct
-   - ✅ FIX: resume game loop after correct (no freeze)
-   - ✅ SOUND MAP:
-       quiz opens -> quiz.mp3
-       quiz correct -> clear.mp3
-   ====================================================== */
+   ============================== */
 
 const QUESTIONS_RAW = [
   { question: "「私（わたし）」は英語で？", choices: ["I", "you", "me", "my"], correctIndex: 0 },
@@ -1387,13 +1316,12 @@ let firstTry = true;
 let questionOpen = false;
 
 function maybeTriggerQuestion(){
-  if(isClearingLines) return; // ✅ never interrupt line clears
+  if(isClearingLines) return;
   const threshold = (currentQuestionIndex + 1) * 5;
   if(linesClearedTotal >= threshold){
     showQuestion();
   }
 }
-
 
 function showQuestion(){
   if(questionOpen) return;
@@ -1402,7 +1330,7 @@ function showQuestion(){
   isPausedForQuestion = true;
   firstTry = true;
 
-  /* ✅ FINAL: quiz-open sound */
+  pauseBGM();
   safePlay(SFX.quizOpen);
 
   if(currentQuestionIndex % QUESTIONS.length === 0){
@@ -1424,7 +1352,6 @@ function showQuestion(){
       if(i === q.correctIndex){
         b.classList.add("correct");
 
-        /* ✅ FINAL: quiz correct sound */
         safePlay(SFX.quizCorrect);
 
         if(firstTry){
@@ -1455,15 +1382,16 @@ function showQuestion(){
   qOverlay.style.display = "flex";
 }
 
-/* ======================================================
-   pause/help/leaderboard
-   ====================================================== */
+/* ==============================
+   PAUSE / HELP / LEADERBOARD
+   ============================== */
 const pauseBtn = document.getElementById("pauseBtn");
 const pauseOverlay = document.getElementById("pauseOverlay");
 pauseBtn.onclick = ()=>{
   if(!gameStarted || gameOver) return;
   isPaused = !isPaused;
   pauseOverlay.style.display = isPaused ? "flex" : "none";
+  if(isPaused) pauseBGM();
   if(!isPaused) resumeLoop();
 };
 pauseOverlay.onclick = ()=>{ isPaused=false; pauseOverlay.style.display="none"; resumeLoop(); };
@@ -1474,6 +1402,7 @@ const helpClose = document.getElementById("helpClose");
 helpBtn.onclick = ()=>{
   if(!gameStarted || gameOver) return;
   isPaused = true;
+  pauseBGM();
   pauseOverlay.style.display = "none";
   helpOverlay.style.display = "flex";
 };
@@ -1489,6 +1418,7 @@ const leaderClose = document.getElementById("leaderClose");
 trophyBtn.onclick = ()=>{
   if(!gameStarted) return;
   isPaused = true;
+  pauseBGM();
   leaderboardOverlay.style.display = "flex";
 };
 leaderClose.onclick = ()=>{
@@ -1497,18 +1427,20 @@ leaderClose.onclick = ()=>{
   resumeLoop();
 };
 
-/* ---- start overlay ---- */
+/* ==============================
+   START OVERLAY
+   ============================== */
 const startOverlay = document.getElementById("startOverlay");
 const startInner = document.getElementById("startOverlayInner");
 
-function startGame(){
+async function startGame(){
   if(gameStarted) return;
 
-  unlockAudioOnce();
+  await unlockAudioOnce();
 
   gameStarted = true;
 
-  // ✅ theme set at start (no level-up sound here)
+  // set theme at start
   currentLevel = calcLevel();
   const t = LEVEL_THEMES[(currentLevel - 1) % LEVEL_THEMES.length];
   document.documentElement.style.setProperty("--pink", t.p);
@@ -1538,7 +1470,7 @@ function startGame(){
 startOverlay.addEventListener("click", startGame);
 startOverlay.addEventListener("touchstart", (e)=>{ e.preventDefault(); startGame(); }, {passive:false});
 
-/* ---- init ---- */
+/* init */
 updateGravity();
 updateHud();
 </script>
