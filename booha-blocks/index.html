@@ -325,29 +325,85 @@ body{
   }
 
   /* MOBILE CONTROLS */
-  #mobileControls,#mobileDownRow{
-    display:none;
-    width:100%;
-    justify-content:center;
-    gap:12px;
-    margin-top:10px;
-  }
-  .mob-btn{
-    width:52px;height:52px;border-radius:50%;
-    border:1px solid var(--gold);
-    background:linear-gradient(135deg,var(--pink),var(--aqua));
-    box-shadow:0 0 12px rgba(255,255,255,0.7);
-    font-size:22px;color:#111827;
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-  }
-  #rotateBtn{
-    background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
-    box-shadow:0 0 18px rgba(232,121,249,0.9);
-  }
-  @media (hover:none) and (pointer:coarse){
-  #mobileControls,#mobileDownRow{display:flex;}
+#mobileControls{
+  display:none;
+  width:100%;
+  justify-content:center;
+  gap:12px;
+  margin-top:8px;
 }
+
+/* ↓ row is separate and compact */
+#mobileDownRow{
+  display:none;
+  width:100%;
+  justify-content:center;
+  margin-top:6px;
+}
+
+/* default circular buttons */
+.mob-btn{
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  border:1px solid var(--gold);
+  background:linear-gradient(135deg,var(--pink),var(--aqua));
+  box-shadow:0 0 12px rgba(255,255,255,0.7);
+  font-size:22px;
+  color:#111827;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+
+/* keep your special rotate style */
+#rotateBtn{
+  background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
+  box-shadow:0 0 18px rgba(232,121,249,0.9);
+}
+
+/* ⬇ SPACE-BAR STYLE DOWN BUTTON */
+#moveDownBtn{
+  width:100%;
+  max-width:260px;
+  height:44px;
+  border-radius:14px;
+  font-size:18px;
+  font-weight:900;
+
+  background:linear-gradient(180deg,#fde68a,#f59e0b);
+  color:#1f2937;
+
+  box-shadow:
+    0 6px 18px rgba(245,158,11,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+#moveDownBtn:active{
+  transform:translateY(1px);
+  box-shadow:
+    0 3px 10px rgba(245,158,11,0.8),
+    inset 0 2px 4px rgba(0,0,0,0.25);
+}
+
+       
+#moveDownBtn:active{
+  transform:translateY(1px);
+  box-shadow:
+    0 3px 10px rgba(245,158,11,0.8),
+    inset 0 2px 4px rgba(0,0,0,0.25);
+}
+
+/* ✅ show controls only on real touch devices */
+@media (hover:none) and (pointer:coarse){
+  #mobileControls,
+  #mobileDownRow{
+    display:flex;
+  }
+}
+
 
 
   /* PAUSE OVERLAY */
