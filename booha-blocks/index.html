@@ -1,6 +1,11 @@
 <!-- =========================
    BOOHA BLOCKS (CLEAN)
-   FULL FILE (Part 1/3)
+   FULL FILE (UPDATED)
+   ✅ No screen bounce (all devices)
+   ✅ iPad zoom prevention (double-tap + gesture + scroll bounce)
+   ✅ Mobile title centered between ? and 🏆
+   ✅ Stickier controls (DAS/ARR hold repeat)
+   ✅ More color bursts + sparkles (random palette each clear)
    ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -32,7 +37,15 @@
   /* RESET */
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{height:100%;width:100%;overflow:hidden;}
-  html{-webkit-text-size-adjust:100%;}
+  html{
+    -webkit-text-size-adjust:100%;
+    overscroll-behavior:none; /* ✅ kill rubber-band */
+    touch-action:none;         /* ✅ kill pan/zoom */
+  }
+  body{
+    overscroll-behavior:none; /* ✅ kill rubber-band */
+    touch-action:none;         /* ✅ kill pan/zoom */
+  }
 
   body{
     display:flex;
@@ -63,7 +76,7 @@
   /* iOS/iPad: STOP tap zoom + selection + callouts */
   body, .shell, canvas, #startOverlay, #questionOverlay,
   #mobileControls, #mobileDownRow,
-  .mob-btn, #moveDownBtn, .choiceBtn{
+  .mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
     -webkit-user-select:none;
     user-select:none;
     -webkit-touch-callout:none;
@@ -136,15 +149,7 @@
     width:min(480px, 100vw - 24px);
     max-height:96vh;
 
-    /* centering robustness (Android) */
     text-align:center;
-  }
-
-  .shell.pulse-hit{ animation:shellPulse 0.06s ease-out; }
-  @keyframes shellPulse{
-    0%   { transform:scale(1); }
-    50%  { transform:scale(1.035); }
-    100% { transform:scale(1); }
   }
 
   /* iPhone Safari bottom bar fix */
@@ -204,9 +209,22 @@
     .shell{ transform:scale(0.82); transform-origin: top center; }
   }
 
+  /* TOPBAR (✅ title centered between ? and 🏆) */
+  .topbar{
+    width:100%;
+    display:grid;
+    grid-template-columns: 36px 1fr auto;
+    align-items:center;
+    gap:10px;
+    padding-top:2px;
+  }
+  .topbar .leftSlot{ justify-self:start; }
+  .topbar .titleSlot{ justify-self:center; text-align:center; }
+  .topbar .rightSlot{ justify-self:end; display:flex; gap:8px; }
+
   /* TITLE */
   h1{
-    width:100%;
+    margin:0;
     font-family:'Cinzel',serif;
     font-weight:900;
     letter-spacing:0.12em;
@@ -217,8 +235,6 @@
     text-shadow:
       0 0 8px rgba(248,250,252,0.9),
       0 0 16px rgba(251,113,133,0.8);
-    margin-left:auto;
-    margin-right:auto;
   }
   h1 span{
     display:block;
@@ -229,10 +245,8 @@
     margin-top:2px;
   }
 
-  /* TOP BUTTONS */
+  /* TOP BUTTONS (no absolute positioning now) */
   #helpBtn,#trophyBtn,#pauseBtn{
-    position:absolute;
-    top:8px;
     width:36px;
     height:36px;
     border-radius:50%;
@@ -246,9 +260,6 @@
     box-shadow:0 0 12px rgba(255,255,255,0.7);
     z-index:15;
   }
-  #helpBtn{left:8px;}
-  #trophyBtn{right:52px;}
-  #pauseBtn{right:8px;}
 
   /* HUD */
   .hud-row{
@@ -257,7 +268,7 @@
     justify-content:space-between;
     font-size:0.8rem;
     color:#e5e7eb;
-    text-align:left; /* keep left/right structure */
+    text-align:left;
   }
   .hud-row .label{opacity:0.8;}
   .hud-row .value{
@@ -283,7 +294,6 @@
     image-rendering:pixelated;
     touch-action:none;
 
-    /* sizing rules */
     width:auto;
     max-width:100%;
     height:min(62svh, 640px);
@@ -355,6 +365,13 @@
     cursor:pointer;
     touch-action:manipulation;
     -webkit-tap-highlight-color: transparent;
+    position:relative;
+  }
+  /* ✅ bigger hit area without changing visual size */
+  .mob-btn::before{
+    content:"";
+    position:absolute;
+    inset:-10px;
   }
 
   #rotateBtn{
@@ -488,11 +505,9 @@
       0 0 70px color-mix(in srgb, var(--aqua) 45%, transparent);
     color:#f9fafb;
 
-    /* ✅ fix “wonky”: keep everything inside, scroll if needed */
     max-height:min(86svh, 680px);
     overflow:auto;
 
-    /* ✅ consistent centering inside the card */
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -589,7 +604,6 @@
     font-weight:900;
     cursor:pointer;
 
-    /* ✅ better fit */
     text-align:center;
     line-height:1.15;
     font-size:18px;
@@ -663,14 +677,24 @@
 
 <div class="shell">
 
-  <h1>
-    BOOHA BLOCKS
-    <span>ブーハー・ブロックス</span>
-  </h1>
+  <!-- ✅ TOP BAR -->
+  <div class="topbar">
+    <div class="leftSlot">
+      <div id="helpBtn">？</div>
+    </div>
 
-  <div id="helpBtn">？</div>
-  <div id="trophyBtn">🏆</div>
-  <div id="pauseBtn">⏸</div>
+    <div class="titleSlot">
+      <h1>
+        BOOHA BLOCKS
+        <span>ブーハー・ブロックス</span>
+      </h1>
+    </div>
+
+    <div class="rightSlot">
+      <div id="trophyBtn">🏆</div>
+      <div id="pauseBtn">⏸</div>
+    </div>
+  </div>
 
   <div class="hud-row">
     <div>
@@ -758,18 +782,22 @@
   </div>
 </div>
 
-
-<!-- =========================
-   BOOHA BLOCKS (CLEAN)
-   FULL FILE (Part 2/3)
-   ========================= -->
 <script>
 /* ==============================
    BOOHA BLOCKS: GAME CORE
    ============================== */
 
-/* iOS pinch zoom guard */
+/* ✅ Kill scroll bounce + iOS rubber band (all devices) */
+document.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
+
+/* iOS pinch/double-tap zoom guard */
 document.addEventListener('gesturestart', e => e.preventDefault());
+let __lastTouchEnd = 0;
+document.addEventListener("touchend", (e)=>{
+  const now = Date.now();
+  if(now - __lastTouchEnd <= 300) e.preventDefault();
+  __lastTouchEnd = now;
+}, {passive:false});
 
 /* canvas */
 const canvas = document.getElementById("game");
@@ -917,7 +945,7 @@ function applyLevelThemeAndMaybeSound(){
 }
 
 /* ==============================
-   REACTIVE GLOW
+   REACTIVE GLOW (✅ no shell scale bounce)
    ============================== */
 let pulse = 0;
 let pulse2 = 0;
@@ -934,13 +962,6 @@ function bumpGlow(lines){
     flash      = Math.min(2.0, flash + 0.8);
     screenGlow = Math.min(2.2, screenGlow + 1.2);
     pulse      = Math.min(1.9, pulse + 0.6);
-  }
-
-  const shell = document.querySelector(".shell");
-  if(shell){
-    shell.classList.remove("pulse-hit");
-    void shell.offsetWidth;
-    shell.classList.add("pulse-hit");
   }
 }
 
@@ -1047,28 +1068,69 @@ function updateGravity(){
 }
 
 /* ==============================
-   LINE CLEAR FX
+   LINE CLEAR FX (✅ more color + sparkles, random each clear)
    ============================== */
 let isClearingLines = false;
 let clearingRows = [];
 let clearTicks = 0;
 
+const CLEAR_PALETTES = [
+  ["#ff7eb9","#7dd3fc","#ffd166","#a7f3d0"],
+  ["#e879f9","#a855f7","#7dd3fc","#facc15"],
+  ["#34d399","#22c55e","#60a5fa","#fb7185"],
+  ["#f97316","#f59e0b","#fde047","#93c5fd"],
+  ["#fb7185","#f472b6","#7dd3fc","#c084fc"],
+  ["#06b6d4","#67e8f9","#facc15","#fb7185"],
+];
+function pickPalette(){
+  return CLEAR_PALETTES[(Math.random()*CLEAR_PALETTES.length)|0];
+}
+let activeClearPalette = pickPalette();
+
 const particles = [];
 function spawnClearParticles(rows){
+  activeClearPalette = pickPalette();
+
   rows.forEach(r=>{
-    for(let i=0;i<26;i++){
+    for(let i=0;i<44;i++){
       const x = (Math.random()*10) * grid + (Math.random()*8);
       const y = r * grid + (Math.random()*grid);
+      const c1 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
+      const c2 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
+
       particles.push({
+        kind: (Math.random()<0.78 ? "dot" : "spark"),
         x, y,
-        vx: (Math.random()-0.5) * 1.6,
-        vy: - (0.6 + Math.random()*2.0),
+        vx: (Math.random()-0.5) * 2.4,
+        vy: - (0.9 + Math.random()*2.8),
         life: 1.0,
-        decay: 0.035 + Math.random()*0.03,
-        size: 1.6 + Math.random()*2.6
+        decay: 0.030 + Math.random()*0.03,
+        size: 1.6 + Math.random()*3.4,
+        rot: Math.random()*Math.PI*2,
+        spin: (Math.random()-0.5)*0.35,
+        c1, c2
       });
     }
   });
+}
+
+function drawSparkShape(x,y,sz,rot){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  // tiny 4-point sparkle
+  ctx.moveTo(0, -sz);
+  ctx.lineTo(sz*0.35, -sz*0.35);
+  ctx.lineTo(sz, 0);
+  ctx.lineTo(sz*0.35, sz*0.35);
+  ctx.lineTo(0, sz);
+  ctx.lineTo(-sz*0.35, sz*0.35);
+  ctx.lineTo(-sz, 0);
+  ctx.lineTo(-sz*0.35, -sz*0.35);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawParticles(){
@@ -1077,7 +1139,8 @@ function drawParticles(){
     const p = particles[i];
     p.x += p.vx;
     p.y += p.vy;
-    p.vy += 0.04;
+    p.vy += 0.05;
+    p.rot += p.spin;
     p.life -= p.decay;
 
     if(p.life <= 0){
@@ -1087,21 +1150,36 @@ function drawParticles(){
 
     const a = Math.max(0, Math.min(1, p.life));
     ctx.save();
-    ctx.globalAlpha = 0.85 * a;
-    ctx.fillStyle = "rgba(255,255,255,1)";
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "rgba(255,255,255,0.9)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-    ctx.fill();
 
-    ctx.globalAlpha = 0.35 * a;
-    ctx.shadowBlur = 14;
-    ctx.shadowColor = "rgba(255,209,102,0.9)";
-    ctx.fillStyle = "rgba(255,209,102,1)";
-    ctx.beginPath();
-    ctx.arc(p.x+0.6, p.y-0.6, p.size*0.55, 0, Math.PI*2);
-    ctx.fill();
+    // glow layer
+    ctx.globalAlpha = 0.78 * a;
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = p.c1;
+
+    if(p.kind === "spark"){
+      ctx.fillStyle = p.c1;
+      drawSparkShape(p.x, p.y, p.size*1.15, p.rot);
+
+      ctx.globalAlpha = 0.32 * a;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = p.c2;
+      ctx.fillStyle = p.c2;
+      drawSparkShape(p.x+0.8, p.y-0.8, p.size*0.72, -p.rot*0.9);
+    }else{
+      ctx.fillStyle = p.c1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.28 * a;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = p.c2;
+      ctx.fillStyle = p.c2;
+      ctx.beginPath();
+      ctx.arc(p.x+0.7, p.y-0.7, p.size*0.55, 0, Math.PI*2);
+      ctx.fill();
+    }
+
     ctx.restore();
   }
 }
@@ -1113,32 +1191,32 @@ function shimmerRowOverlay(r, t){
 
   ctx.save();
   ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = 0.45;
 
-  const g = ctx.createLinearGradient(sweepX, y, sweepX + grid*4, y);
+  // ✅ palette-tinted sweep
+  const cA = activeClearPalette[0] || "rgba(255,255,255,1)";
+  const cB = activeClearPalette[1] || "rgba(255,255,255,1)";
+
+  ctx.globalAlpha = 0.44;
+  const g = ctx.createLinearGradient(sweepX, y, sweepX + grid*5, y);
   g.addColorStop(0, "rgba(255,255,255,0)");
-  g.addColorStop(0.45, "rgba(255,255,255,0.9)");
+  g.addColorStop(0.35, cA);
+  g.addColorStop(0.65, cB);
   g.addColorStop(1, "rgba(255,255,255,0)");
-
   ctx.fillStyle = g;
   ctx.fillRect(0, y, canvas.width, grid);
 
-  ctx.globalAlpha = 0.18 + 0.18*Math.sin((Date.now()/60) + r);
-  ctx.fillStyle = "rgba(255,209,102,1)";
-  for(let i=0;i<6;i++){
-    const x = (i*54 + (Date.now()/6)%54) % canvas.width;
-    ctx.fillRect(x, y + 4 + (i%3), 2, 2);
+  // ✅ extra glitter pixels
+  ctx.globalAlpha = 0.22 + 0.18*Math.sin((Date.now()/60) + r);
+  for(let i=0;i<10;i++){
+    const x = (i*38 + (Date.now()/5)%38) % canvas.width;
+    ctx.fillStyle = activeClearPalette[i % activeClearPalette.length];
+    ctx.fillRect(x, y + 4 + (i%4), 2, 2);
   }
 
   ctx.restore();
 }
 </script>
 
-
-<!-- =========================
-   BOOHA BLOCKS (CLEAN)
-   FULL FILE (Part 3/3)
-   ========================= -->
 <script>
 /* ==============================
    LOCK / CLEAR / DRAW / LOOP
@@ -1218,7 +1296,7 @@ function draw(){
     clearingRows.forEach(r=>{
       ctx.save();
       ctx.globalCompositeOperation = "screen";
-      ctx.globalAlpha = 0.18 + 0.22*Math.sin((Date.now()/70) + r);
+      ctx.globalAlpha = 0.16 + 0.22*Math.sin((Date.now()/70) + r);
       ctx.fillStyle = "rgba(255,255,255,1)";
       ctx.fillRect(0, r*grid, canvas.width, grid);
       ctx.restore();
@@ -1295,86 +1373,87 @@ document.addEventListener("keydown",e=>{
 });
 
 /* ==============================
-   MOBILE CONTROLS (no double-fire on Android)
+   MOBILE CONTROLS (✅ stickier: DAS/ARR hold repeat)
    ============================== */
 const moveLeftBtn  = document.getElementById("moveLeftBtn");
 const moveRightBtn = document.getElementById("moveRightBtn");
 const rotateBtn    = document.getElementById("rotateBtn");
 const moveDownBtn  = document.getElementById("moveDownBtn");
 
-/* single input path: touchstart on touch devices, click on others */
-function bindTap(btn, fn){
-  if(!btn) return;
-
-  let touched = false;
-
-  btn.addEventListener("touchstart", (e)=>{
-    touched = true;
-    e.preventDefault();
-    e.stopPropagation();
-    fn();
-  }, {passive:false});
-
-  btn.addEventListener("click", (e)=>{
-    if(touched){
-      // ignore the synthetic click that follows touch on Android
-      touched = false;
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    fn();
-  });
+function canInput(){
+  return gameStarted && !gameOver && !isPaused && !isPausedForQuestion && !isClearingLines;
 }
-
-bindTap(moveLeftBtn, ()=>{ if(!isClearingLines && valid(piece.matrix,piece.row,piece.col-1)) piece.col--; });
-bindTap(moveRightBtn,()=>{ if(!isClearingLines && valid(piece.matrix,piece.row,piece.col+1)) piece.col++; });
-bindTap(rotateBtn,   ()=>{
-  if(isClearingLines) return;
+function stepLeft(){ if(canInput() && valid(piece.matrix,piece.row,piece.col-1)) piece.col--; }
+function stepRight(){ if(canInput() && valid(piece.matrix,piece.row,piece.col+1)) piece.col++; }
+function stepRotate(){
+  if(!canInput()) return;
   const r = rotate(piece.matrix);
   if(valid(r,piece.row,piece.col)) piece.matrix = r;
-});
-
-/* tap down = 1, hold = fast */
-let downHold=false, downTimer=null;
-
+}
 function downStep(){
-  if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
+  if(!canInput()) return;
   if(valid(piece.matrix,piece.row+1,piece.col)) piece.row++;
   else lockPiece();
 }
 
-if(moveDownBtn){
-  moveDownBtn.addEventListener("touchstart", (e)=>{
+/* ✅ hold-repeat helper (DAS/ARR) */
+function bindHoldRepeat(btn, stepFn, DAS=110, ARR=45){
+  if(!btn) return;
+
+  let holdTimer = null;
+  let repeatTimer = null;
+  let active = false;
+
+  const stop = ()=>{
+    active = false;
+    if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; }
+    if(repeatTimer){ clearInterval(repeatTimer); repeatTimer=null; }
+  };
+
+  const start = (e)=>{
     e.preventDefault();
     e.stopPropagation();
-    if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
+    if(active) return;
+    active = true;
 
-    downHold = true;
-    downStep();
+    stepFn(); // immediate first move
 
-    downTimer = setInterval(()=>{
-      if(!downHold) return;
-      downStep();
-    }, 55);
+    holdTimer = setTimeout(()=>{
+      repeatTimer = setInterval(()=>{ stepFn(); }, ARR);
+    }, DAS);
+  };
+
+  btn.addEventListener("pointerdown", (e)=>{
+    try{ btn.setPointerCapture(e.pointerId); }catch(_){}
+    start(e);
   }, {passive:false});
+  btn.addEventListener("pointerup", stop, {passive:true});
+  btn.addEventListener("pointercancel", stop, {passive:true});
+  btn.addEventListener("pointerleave", stop, {passive:true});
 
-  moveDownBtn.addEventListener("touchend", ()=>{
-    downHold = false;
-    if(downTimer){ clearInterval(downTimer); downTimer=null; }
-  });
-  moveDownBtn.addEventListener("touchcancel", ()=>{
-    downHold = false;
-    if(downTimer){ clearInterval(downTimer); downTimer=null; }
-  });
+  // extra safety for old iOS: touchend
+  btn.addEventListener("touchend", stop, {passive:true});
+  btn.addEventListener("touchcancel", stop, {passive:true});
+}
 
-  /* non-touch fallback */
-  moveDownBtn.addEventListener("click", (e)=>{
+function bindTapOnly(btn, fn){
+  if(!btn) return;
+  btn.addEventListener("pointerdown", (e)=>{
     e.preventDefault();
     e.stopPropagation();
-    downStep();
-  });
+    fn();
+  }, {passive:false});
 }
+
+/* left/right = sticky repeat */
+bindHoldRepeat(moveLeftBtn, stepLeft, 110, 45);
+bindHoldRepeat(moveRightBtn, stepRight, 110, 45);
+
+/* rotate = tap only (no repeat) */
+bindTapOnly(rotateBtn, stepRotate);
+
+/* down = tap + faster hold repeat */
+bindHoldRepeat(moveDownBtn, downStep, 85, 35);
 
 /* ==============================
    QUESTION GATE (UPDATED)
@@ -1509,7 +1588,6 @@ function showQuestion(){
       if(c.originalIndex === q.correctIndex){
         b.classList.add("correct");
 
-        /* ✅ iPad: use fresh-instance SFX for correct */
         playSFX(AUDIO_FILES.quizCorrect, 0.95);
 
         if(firstTry){
@@ -1634,4 +1712,3 @@ updateHud();
 </script>
 </body>
 </html>
-     
