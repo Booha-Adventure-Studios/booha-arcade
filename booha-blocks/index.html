@@ -143,7 +143,9 @@ body{
     gap:10px;
 
     width:min(480px, 100vw - 24px);
-    max-height:96vh;
+    max-height:calc(100svh - (5vh + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)));
+    overflow:hidden; /* ✅ prevents inner layout from pushing controls off-screen */
+
   }
 
   /* ✅ shell heartbeat on line clear */
@@ -286,10 +288,11 @@ body{
       0 0 calc(18px + (38px * var(--flash))) rgba(255,255,255,0.28);
     image-rendering:pixelated;
     touch-action:none;
-    width:100%;
-    height:auto;
-    aspect-ratio:1/2;
+    height:min(62svh, 640px);
+    width:auto;
+    max-width:100%;
     display:block;
+
   }
 
   /* SPARKLES */
@@ -342,9 +345,10 @@ body{
     background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
     box-shadow:0 0 18px rgba(232,121,249,0.9);
   }
-  @media(max-width:1366px){
-    #mobileControls,#mobileDownRow{display:flex;}
-  }
+  @media (hover:none) and (pointer:coarse){
+  #mobileControls,#mobileDownRow{display:flex;}
+}
+
 
   /* PAUSE OVERLAY */
   #pauseOverlay{
