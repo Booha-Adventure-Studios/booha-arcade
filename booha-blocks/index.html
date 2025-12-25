@@ -1,11 +1,13 @@
 <!-- =========================
    BOOHA BLOCKS (CLEAN)
-   FULL FILE (UPDATED)
-   ✅ No screen bounce (all devices)
-   ✅ iPad zoom prevention (double-tap + gesture + scroll bounce)
-   ✅ Mobile title centered between ? and 🏆
-   ✅ Stickier controls (DAS/ARR hold repeat)
-   ✅ More color bursts + sparkles (random palette each clear)
+   FULL FILE (CLEANED + FIXED)
+   ✅ Single unified game loop
+   ✅ ONE leaderboard system (localStorage)
+   ✅ ONE leaderboard overlay (no duplicate IDs)
+   ✅ Consistent flags: isGameOver / isPaused / isPausedForQuestion / gameStarted
+   ✅ Fixed resumeLoop + keyboard checks
+   ✅ Fixed saveLocalScore (uses linesClearedTotal)
+   ✅ Game Over overlay + tap-to-restart
    ========================= -->
 <!DOCTYPE html>
 <html lang="ja">
@@ -245,7 +247,7 @@
     margin-top:2px;
   }
 
-  /* TOP BUTTONS (no absolute positioning now) */
+  /* TOP BUTTONS */
   #helpBtn,#trophyBtn,#pauseBtn{
     width:36px;
     height:36px;
@@ -446,36 +448,6 @@
     box-shadow:0 0 8px rgba(255,255,255,0.7);
   }
 
-  /* LEADERBOARD */
-  #leaderboardOverlay{
-    position:absolute;inset:0;border-radius:24px;
-    background:rgba(0,0,15,0.9);
-    backdrop-filter:blur(6px);
-    display:none;align-items:center;justify-content:center;
-    z-index:32;
-  }
-  .leader-card{
-    width:88%;max-width:360px;
-    padding:18px 20px 16px;border-radius:18px;
-    background:radial-gradient(circle,#020617,#020617 60%);
-    border:1px solid rgba(255,255,255,0.25);
-    color:#e5e7eb;position:relative;font-size:0.8rem;
-  }
-  .leader-title{
-    font-family:'Cinzel';
-    text-align:center;font-size:1.05rem;margin-bottom:8px;
-  }
-  #leaderClose{
-    position:absolute;top:8px;right:8px;width:26px;height:26px;
-    border-radius:50%;
-    background:linear-gradient(135deg,var(--pink),var(--aqua));
-    border:1px solid var(--gold);
-    display:flex;align-items:center;justify-content:center;
-    font-size:16px;cursor:pointer;
-    box-shadow:0 0 8px rgba(255,255,255,0.7);
-  }
-  #leaderboardList{margin-top:4px;line-height:1.6;}
-
   /* QUESTION OVERLAY */
   #questionOverlay{
     position:fixed;inset:0;
@@ -511,41 +483,6 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-  }
-
-  .q-card::before{
-    content:"";
-    position:absolute;
-    left:-30%;
-    top:-40px;
-    width:160%;
-    height:120px;
-    background:linear-gradient(90deg,
-      transparent,
-      color-mix(in srgb, var(--pink) 65%, transparent),
-      color-mix(in srgb, var(--aqua) 65%, transparent),
-      transparent);
-    opacity:.55;
-    transform:rotate(-6deg);
-    animation:qSweep 3.8s ease-in-out infinite;
-  }
-  @keyframes qSweep{
-    0%{transform:translateX(-12%) rotate(-6deg);}
-    50%{transform:translateX(12%) rotate(-6deg);}
-    100%{transform:translateX(-12%) rotate(-6deg);}
-  }
-
-  .q-card::after{
-    content:"";
-    position:absolute;inset:0;
-    background:
-      radial-gradient(circle at 15% 25%, rgba(255,255,255,.18) 0 2px, transparent 3px),
-      radial-gradient(circle at 70% 35%, rgba(255,255,255,.14) 0 2px, transparent 3px),
-      radial-gradient(circle at 40% 80%, rgba(255,255,255,.12) 0 2px, transparent 3px),
-      radial-gradient(circle at 85% 70%, rgba(255,255,255,.15) 0 2px, transparent 3px);
-    opacity:.6;
-    mix-blend-mode:screen;
-    pointer-events:none;
   }
 
   .q-title{
@@ -663,143 +600,114 @@
     margin-bottom:6px;
   }
 
-/* ✅ iPhone Safari zoom fix — STEP 1 */
-button, input, select, textarea,
-a, [role="button"], [tabindex],
-.cell, .block, .answer, .option, .btn,
-#game, #ui, #popup, #overlay, #hud, #controls {
-  font-size: 16px !important;
-}
+  /* ✅ iPhone Safari zoom fix */
+  button, input, select, textarea,
+  a, [role="button"], [tabindex],
+  .cell, .block, .answer, .option, .btn,
+  #game, #ui, #popup, #overlay, #hud, #controls {
+    font-size: 16px !important;
+  }
 
-/* ✅ iPhone Safari zoom fix — STEP 2: disable focus + selection */
-* {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
+  /* ==============================
+     LEADERBOARD OVERLAY (LOCAL) ✅ single source of truth
+     ============================== */
+  #leaderboardOverlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.65);
+    backdrop-filter: blur(8px);
+    padding:14px;
+  }
 
-button, div {
-  outline: none;
-}
+  #leaderboardCard{
+    width:min(560px,92vw);
+    max-height:80vh;
+    overflow:auto;
+    border-radius:24px;
+    padding:18px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(10,10,16,.92);
+    box-shadow:0 20px 80px rgba(0,0,0,.6);
+    color:#fff;
+  }
 
-/* ✅ iOS tap stability */
-button, a, [role="button"] {
-  touch-action: manipulation;
-}
+  .lbTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
 
+  .lbTitle{
+    font-family:"Cinzel", serif;
+    font-weight:900;
+    letter-spacing:.8px;
+    font-size:20px;
+  }
 
-/* ✅ Mobile usability: make arrow buttons pill-shaped */
-.arrowBtn,
-.prevBtn,
-.nextBtn,
-#prevBtn,
-#nextBtn {
-  min-width: 88px;        /* ← roughly double a small button */
-  padding: 12px 24px;    /* horizontal growth only */
-  border-radius: 999px;  /* pill shape */
-}
+  .lbClose{
+    font:inherit;
+    font-weight:900;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.08);
+    color:#fff;
+  }
 
+  .lbList{
+    display:grid;
+    gap:10px;
+    margin:12px 0 14px;
+  }
 
-/* ==============================
-   LEADERBOARD OVERLAY (LOCAL)
-   ============================== */
-#leaderboardOverlay{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,.65);
-  backdrop-filter: blur(8px);
-}
+  .lbRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:16px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+  }
 
-#leaderboardCard{
-  width:min(560px,92vw);
-  max-height:80vh;
-  overflow:auto;
-  border-radius:24px;
-  padding:18px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(10,10,16,.92);
-  box-shadow:0 20px 80px rgba(0,0,0,.6);
-  color:#fff;
-}
+  .lbLeft{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
 
-.lbTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
+  .lbRank{
+    font-weight:900;
+    min-width:44px;
+  }
 
-.lbTitle{
-  font-family:"Cinzel", serif;
-  font-weight:900;
-  letter-spacing:.8px;
-  font-size:20px;
-}
+  .lbMeta{ opacity:.92; }
+  .lbDim{ opacity:.75; }
 
-.lbClose{
-  font:inherit;
-  font-weight:900;
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.08);
-  color:#fff;
-}
+  .lbClear{
+    width:100%;
+    font:inherit;
+    font-weight:900;
+    padding:12px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,209,102,.95);
+    color:#000;
+  }
 
-.lbList{
-  display:grid;
-  gap:10px;
-  margin:12px 0 14px;
-}
-
-.lbRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:10px 12px;
-  border-radius:16px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.12);
-}
-
-.lbLeft{
-  display:flex;
-  align-items:baseline;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.lbRank{
-  font-weight:900;
-  min-width:44px;
-}
-
-.lbMeta{ opacity:.92; }
-.lbDim{ opacity:.75; }
-
-.lbClear{
-  width:100%;
-  font:inherit;
-  font-weight:900;
-  padding:12px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,209,102,.95);
-  color:#000;
-}
-
-     
-     
   </style>
 </head>
-<body>
 
+
+<body>
 
 <!-- ==============================
      LEADERBOARD OVERLAY (LOCAL)
@@ -808,18 +716,16 @@ button, a, [role="button"] {
   <div id="leaderboardCard">
     <div class="lbTop">
       <div class="lbTitle">LEADERBOARD</div>
-      <button id="leaderClose" class="lbClose">CLOSE</button>
+      <button id="leaderClose" class="lbClose" type="button">CLOSE</button>
     </div>
 
     <div id="leaderList" class="lbList"></div>
 
-    <button id="lbClearBtn" class="lbClear">CLEAR SCORES</button>
+    <button id="lbClearBtn" class="lbClear" type="button">CLEAR SCORES</button>
   </div>
 </div>
 
-
-   
-<!-- Tap-to-start -->
+<!-- Tap-to-start / also used for GAME OVER -->
 <div id="startOverlay">
   <div id="startOverlayInner">
     <span class="big">画面をタップしてスタート</span>
@@ -902,14 +808,6 @@ button, a, [role="button"] {
     </div>
   </div>
 
-  <div id="leaderboardOverlay">
-    <div class="leader-card">
-      <div id="leaderClose">✕</div>
-      <div class="leader-title">ローカル・ハイスコア</div>
-      <div id="leaderboardList">まだありません</div>
-    </div>
-  </div>
-
   <div id="mobileControls">
     <div class="mob-btn" id="moveLeftBtn">←</div>
     <div class="mob-btn" id="rotateBtn">↻</div>
@@ -935,16 +833,16 @@ button, a, [role="button"] {
   </div>
 </div>
 
+
+
 <script>
 /* ==============================
-   BOOHA BLOCKS: GAME CORE
+   BOOHA BLOCKS: FULL GAME CORE (CLEAN)
    ============================== */
 
-/* ✅ Kill scroll bounce + iOS rubber band (all devices) */
+/* ✅ Kill scroll bounce + iOS rubber band */
 document.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
-
-/* iOS pinch/double-tap zoom guard */
-document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener("gesturestart", e => e.preventDefault());
 let __lastTouchEnd = 0;
 document.addEventListener("touchend", (e)=>{
   const now = Date.now();
@@ -957,7 +855,9 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const grid = 32;
 
-/* state */
+/* ==============================
+   STATE (✅ one truth)
+   ============================== */
 let gameStarted = false;
 let gameOver = false;
 let isPaused = false;
@@ -968,9 +868,24 @@ let linesClearedTotal = 0;
 
 let gravityFrames = 40;
 let frameCounter = 0;
-
-/* loop safety */
 let rafId = 0;
+
+/* HUD */
+const linesEl = document.getElementById("linesCount");
+const scoreEl = document.getElementById("scoreValue");
+const nextAtEl = document.getElementById("nextAt");
+
+/* overlays */
+const startOverlay = document.getElementById("startOverlay");
+const startInner   = document.getElementById("startOverlayInner");
+const pauseOverlay = document.getElementById("pauseOverlay");
+const helpOverlay  = document.getElementById("helpOverlay");
+
+function updateHud(){
+  linesEl.textContent = linesClearedTotal;
+  scoreEl.textContent = score;
+  nextAtEl.textContent = (currentQuestionIndex + 1) * 5;
+}
 
 /* ==============================
    AUDIO (same folder) iPad-safe unlock
@@ -987,25 +902,37 @@ const AUDIO_FILES = {
 
 const SFX = {
   bgm: new Audio(AUDIO_FILES.bgm),
-  quizOpen: new Audio(AUDIO_FILES.quizOpen),
-  quizCorrect: new Audio(AUDIO_FILES.quizCorrect),
-  levelUp: new Audio(AUDIO_FILES.levelUp),
 };
 
 SFX.bgm.loop = true;
 SFX.bgm.preload = "auto";
 SFX.bgm.volume = 0.28;
 
-SFX.quizOpen.preload = "auto";
-SFX.quizOpen.volume = 0.90;
+function preloadAllAudio(){
+  try{ SFX.bgm.load(); }catch(_){}
+  try{ (new Audio(AUDIO_FILES.lineClear)).load(); }catch(_){}
+  try{ (new Audio(AUDIO_FILES.quizOpen)).load(); }catch(_){}
+  try{ (new Audio(AUDIO_FILES.quizCorrect)).load(); }catch(_){}
+  try{ (new Audio(AUDIO_FILES.levelUp)).load(); }catch(_){}
+}
 
-SFX.quizCorrect.preload = "auto";
-SFX.quizCorrect.volume = 0.90;
+async function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  preloadAllAudio();
 
-SFX.levelUp.preload = "auto";
-SFX.levelUp.volume = 0.90;
+  const prevVol = SFX.bgm.volume;
+  try{
+    SFX.bgm.volume = 0.0001;
+    const p = SFX.bgm.play();
+    if(p && typeof p.catch === "function") await p.catch(()=>{});
+    try{ SFX.bgm.pause(); }catch(_){}
+    try{ SFX.bgm.currentTime = 0; }catch(_){}
+  }catch(_){}
+  SFX.bgm.volume = prevVol;
+}
 
-async function safePlay(audio, opts={}){
+function safePlay(audio, opts={}){
   if(!audioUnlocked || !audio) return;
   const restart = opts.restart !== false;
   try{
@@ -1017,7 +944,6 @@ async function safePlay(audio, opts={}){
   }catch(_){}
 }
 
-/* fresh instance SFX (best for iPad Safari reliability) */
 function playSFX(url, vol=1){
   if(!audioUnlocked) return;
   try{
@@ -1031,35 +957,7 @@ function playSFX(url, vol=1){
   }catch(_){}
 }
 
-function preloadAllAudio(){
-  try{ SFX.bgm.load(); }catch(_){}
-  try{ SFX.quizOpen.load(); }catch(_){}
-  try{ SFX.quizCorrect.load(); }catch(_){}
-  try{ SFX.levelUp.load(); }catch(_){}
-  try{ (new Audio(AUDIO_FILES.lineClear)).load(); }catch(_){}
-}
-
-async function unlockAudioOnce(){
-  if(audioUnlocked) return;
-  audioUnlocked = true;
-
-  preloadAllAudio();
-
-  // iPad: single muted play to unlock, no burst
-  const prevVol = SFX.bgm.volume;
-  try{
-    SFX.bgm.volume = 0.0001;
-    const p = SFX.bgm.play();
-    if(p && typeof p.catch === "function") await p.catch(()=>{});
-    try{ SFX.bgm.pause(); }catch(_){}
-    try{ SFX.bgm.currentTime = 0; }catch(_){}
-  }catch(_){}
-  SFX.bgm.volume = prevVol;
-}
-
-function pauseBGM(){
-  try{ SFX.bgm.pause(); }catch(_){}
-}
+function pauseBGM(){ try{ SFX.bgm.pause(); }catch(_){ } }
 function resumeBGM(){
   if(!audioUnlocked) return;
   if(gameOver) return;
@@ -1081,7 +979,6 @@ const LEVEL_THEMES = [
   {p:"#e879f9", s:"#7dd3fc"},
   {p:"#facc15", s:"#60a5fa"},
 ];
-
 let currentLevel = 1;
 function calcLevel(){ return Math.max(1, 1 + Math.floor(linesClearedTotal / 10)); }
 
@@ -1098,12 +995,9 @@ function applyLevelThemeAndMaybeSound(){
 }
 
 /* ==============================
-   REACTIVE GLOW (✅ no shell scale bounce)
+   REACTIVE GLOW
    ============================== */
-let pulse = 0;
-let pulse2 = 0;
-let flash = 0;
-let screenGlow = 0;
+let pulse = 0, pulse2 = 0, flash = 0, screenGlow = 0;
 
 function bumpGlow(lines){
   pulse      = Math.min(1.55, pulse      + 0.26 + 0.16 * lines);
@@ -1130,24 +1024,11 @@ function tickGlow(){
   document.documentElement.style.setProperty("--screenGlow", screenGlow.toFixed(3));
 }
 
-/* HUD */
-const linesEl = document.getElementById("linesCount");
-const scoreEl = document.getElementById("scoreValue");
-const nextAtEl = document.getElementById("nextAt");
-
-let currentQuestionIndex = 0;
-
-function updateHud(){
-  linesEl.textContent = linesClearedTotal;
-  scoreEl.textContent = score;
-  nextAtEl.textContent = (currentQuestionIndex + 1) * 5;
-}
-
-/* playfield */
+/* ==============================
+   PLAYFIELD
+   ============================== */
 const playfield = [];
-for(let r = -2; r < 20; r++){
-  playfield[r] = Array(10).fill(0);
-}
+for(let r = -2; r < 20; r++) playfield[r] = Array(10).fill(0);
 
 /* pieces */
 const tetrominos = {
@@ -1204,9 +1085,7 @@ function valid(matrix,row,col){
 }
 
 /* rotate */
-function rotate(m){
-  return m[0].map((_,i)=>m.map(r=>r[i]).reverse());
-}
+function rotate(m){ return m[0].map((_,i)=>m.map(r=>r[i]).reverse()); }
 
 /* scoring */
 function scoreLines(lines){
@@ -1214,14 +1093,12 @@ function scoreLines(lines){
   const points = 10 * (2 ** (lines - 1));
   score += points;
 }
-
-/* speed scaling */
 function updateGravity(){
   gravityFrames = Math.max(8, 40 - Math.floor(score / 200));
 }
 
 /* ==============================
-   LINE CLEAR FX (✅ more color + sparkles, random each clear)
+   LINE CLEAR FX
    ============================== */
 let isClearingLines = false;
 let clearingRows = [];
@@ -1235,22 +1112,18 @@ const CLEAR_PALETTES = [
   ["#fb7185","#f472b6","#7dd3fc","#c084fc"],
   ["#06b6d4","#67e8f9","#facc15","#fb7185"],
 ];
-function pickPalette(){
-  return CLEAR_PALETTES[(Math.random()*CLEAR_PALETTES.length)|0];
-}
+function pickPalette(){ return CLEAR_PALETTES[(Math.random()*CLEAR_PALETTES.length)|0]; }
 let activeClearPalette = pickPalette();
 
 const particles = [];
 function spawnClearParticles(rows){
   activeClearPalette = pickPalette();
-
   rows.forEach(r=>{
     for(let i=0;i<44;i++){
       const x = (Math.random()*10) * grid + (Math.random()*8);
       const y = r * grid + (Math.random()*grid);
       const c1 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
       const c2 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
-
       particles.push({
         kind: (Math.random()<0.78 ? "dot" : "spark"),
         x, y,
@@ -1272,7 +1145,6 @@ function drawSparkShape(x,y,sz,rot){
   ctx.translate(x,y);
   ctx.rotate(rot);
   ctx.beginPath();
-  // tiny 4-point sparkle
   ctx.moveTo(0, -sz);
   ctx.lineTo(sz*0.35, -sz*0.35);
   ctx.lineTo(sz, 0);
@@ -1303,8 +1175,6 @@ function drawParticles(){
 
     const a = Math.max(0, Math.min(1, p.life));
     ctx.save();
-
-    // glow layer
     ctx.globalAlpha = 0.78 * a;
     ctx.shadowBlur = 16;
     ctx.shadowColor = p.c1;
@@ -1332,7 +1202,6 @@ function drawParticles(){
       ctx.arc(p.x+0.7, p.y-0.7, p.size*0.55, 0, Math.PI*2);
       ctx.fill();
     }
-
     ctx.restore();
   }
 }
@@ -1345,7 +1214,6 @@ function shimmerRowOverlay(r, t){
   ctx.save();
   ctx.globalCompositeOperation = "screen";
 
-  // ✅ palette-tinted sweep
   const cA = activeClearPalette[0] || "rgba(255,255,255,1)";
   const cB = activeClearPalette[1] || "rgba(255,255,255,1)";
 
@@ -1358,7 +1226,6 @@ function shimmerRowOverlay(r, t){
   ctx.fillStyle = g;
   ctx.fillRect(0, y, canvas.width, grid);
 
-  // ✅ extra glitter pixels
   ctx.globalAlpha = 0.22 + 0.18*Math.sin((Date.now()/60) + r);
   for(let i=0;i<10;i++){
     const x = (i*38 + (Date.now()/5)%38) % canvas.width;
@@ -1368,9 +1235,29 @@ function shimmerRowOverlay(r, t){
 
   ctx.restore();
 }
-</script>
 
-<script>
+/* ==============================
+   GAME OVER (single path)
+   ============================== */
+function endGame(){
+  if(gameOver) return;
+  gameOver = true;
+
+  if(rafId) cancelAnimationFrame(rafId);
+  pauseBGM();
+
+  saveLocalScore();
+
+  startOverlay.style.display = "flex";
+  startInner.innerHTML = `
+    <span class="big">GAME OVER</span>
+    スコア：${score}<br>
+    ライン：${linesClearedTotal}<br><br>
+    画面をタップしてリスタート
+  `;
+  // tap to restart uses startGame() (below) which now resets state
+}
+
 /* ==============================
    LOCK / CLEAR / DRAW / LOOP
    ============================== */
@@ -1379,8 +1266,7 @@ function lockPiece(){
     for(let c=0;c<piece.matrix[r].length;c++){
       if(piece.matrix[r][c]){
         if(piece.row+r < 0){
-          gameOver = true;
-          pauseBGM();
+          endGame();
           return;
         }
         playfield[piece.row+r][piece.col+c] = piece.name;
@@ -1401,7 +1287,6 @@ function lockPiece(){
     playSFX(AUDIO_FILES.lineClear, 0.78);
     bumpGlow(fullRows.length);
     spawnClearParticles(fullRows);
-
     return;
   }
 
@@ -1422,9 +1307,7 @@ function commitLineClear(){
     updateGravity();
     applyLevelThemeAndMaybeSound();
 
-    requestAnimationFrame(()=>{
-      setTimeout(()=>{ maybeTriggerQuestion(); }, 180);
-    });
+    requestAnimationFrame(()=>{ setTimeout(()=>{ maybeTriggerQuestion(); }, 180); });
   }
 
   isClearingLines = false;
@@ -1453,7 +1336,6 @@ function draw(){
       ctx.fillStyle = "rgba(255,255,255,1)";
       ctx.fillRect(0, r*grid, canvas.width, grid);
       ctx.restore();
-
       shimmerRowOverlay(r, t);
     });
   }
@@ -1462,11 +1344,7 @@ function draw(){
   piece.matrix.forEach((row,r)=>{
     row.forEach((v,c)=>{
       if(v){
-        ctx.fillRect(
-          (piece.col+c)*grid,
-          (piece.row+r)*grid,
-          grid-1,grid-1
-        );
+        ctx.fillRect((piece.col+c)*grid,(piece.row+r)*grid,grid-1,grid-1);
       }
     });
   });
@@ -1482,9 +1360,7 @@ function loop(){
   if(isClearingLines){
     clearTicks--;
     draw();
-    if(clearTicks <= 0){
-      commitLineClear();
-    }
+    if(clearTicks <= 0) commitLineClear();
     rafId = requestAnimationFrame(loop);
     return;
   }
@@ -1492,11 +1368,8 @@ function loop(){
   frameCounter++;
   if(frameCounter >= gravityFrames){
     frameCounter = 0;
-    if(valid(piece.matrix, piece.row+1, piece.col)){
-      piece.row++;
-    }else{
-      lockPiece();
-    }
+    if(valid(piece.matrix, piece.row+1, piece.col)) piece.row++;
+    else lockPiece();
   }
 
   draw();
@@ -1504,9 +1377,7 @@ function loop(){
 }
 
 function resumeLoop(){
-  // ✅ use ONE consistent flag name for “game is over”
-  if(isGameOverFlag || isPaused || isPausedForQuestion || !gameStarted) return;
-
+  if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
   if(rafId) cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
   resumeBGM();
@@ -1514,7 +1385,7 @@ function resumeLoop(){
 
 /* desktop keys */
 document.addEventListener("keydown", (e)=>{
-  if(!gameStarted || isGameOverFlag || isPaused || isPausedForQuestion || isClearingLines) return;
+  if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
   if(e.key==="ArrowLeft" && valid(piece.matrix, piece.row, piece.col-1)) piece.col--;
   if(e.key==="ArrowRight"&& valid(piece.matrix, piece.row, piece.col+1)) piece.col++;
@@ -1527,9 +1398,8 @@ document.addEventListener("keydown", (e)=>{
   }
 });
 
-
 /* ==============================
-   MOBILE CONTROLS (✅ stickier: DAS/ARR hold repeat)
+   MOBILE CONTROLS (DAS/ARR hold repeat)
    ============================== */
 const moveLeftBtn  = document.getElementById("moveLeftBtn");
 const moveRightBtn = document.getElementById("moveRightBtn");
@@ -1552,10 +1422,8 @@ function downStep(){
   else lockPiece();
 }
 
-/* ✅ hold-repeat helper (DAS/ARR) */
 function bindHoldRepeat(btn, stepFn, DAS=110, ARR=45){
   if(!btn) return;
-
   let holdTimer = null;
   let repeatTimer = null;
   let active = false;
@@ -1572,7 +1440,7 @@ function bindHoldRepeat(btn, stepFn, DAS=110, ARR=45){
     if(active) return;
     active = true;
 
-    stepFn(); // immediate first move
+    stepFn();
 
     holdTimer = setTimeout(()=>{
       repeatTimer = setInterval(()=>{ stepFn(); }, ARR);
@@ -1586,8 +1454,6 @@ function bindHoldRepeat(btn, stepFn, DAS=110, ARR=45){
   btn.addEventListener("pointerup", stop, {passive:true});
   btn.addEventListener("pointercancel", stop, {passive:true});
   btn.addEventListener("pointerleave", stop, {passive:true});
-
-  // extra safety for old iOS: touchend
   btn.addEventListener("touchend", stop, {passive:true});
   btn.addEventListener("touchcancel", stop, {passive:true});
 }
@@ -1601,18 +1467,14 @@ function bindTapOnly(btn, fn){
   }, {passive:false});
 }
 
-/* left/right = sticky repeat */
-bindHoldRepeat(moveLeftBtn, stepLeft, 110, 45);
+/* down = tap only (no hold soft-drop) */
+bindTapOnly(moveDownBtn, downStep);
 bindHoldRepeat(moveRightBtn, stepRight, 110, 45);
-
-/* rotate = tap only (no repeat) */
 bindTapOnly(rotateBtn, stepRotate);
-
-/* down = tap + faster hold repeat */
 bindHoldRepeat(moveDownBtn, downStep, 85, 35);
 
 /* ==============================
-   QUESTION GATE (UPDATED)
+   QUESTION GATE
    ============================== */
 const QUESTIONS_RAW = [
   { question: "「私（わたし）」は英語で？", choices: ["I","me","my","you"], correctIndex: 0 },
@@ -1621,7 +1483,6 @@ const QUESTIONS_RAW = [
   { question: "「彼女（かのじょ）」は英語で？", choices: ["she","her","hers","he"], correctIndex: 0 },
   { question: "「私たち」は英語で？", choices: ["we","us","our","they"], correctIndex: 0 },
   { question: "「彼ら／彼女ら」は英語で？", choices: ["they","them","their","we"], correctIndex: 0 },
-
   { question: "「〜の／〜をする（持っている）」は英語で？", choices: ["have","make","take","give"], correctIndex: 0 },
   { question: "「〜である」は英語で？", choices: ["be","do","go","get"], correctIndex: 0 },
   { question: "「〜する」は英語で？", choices: ["do","make","work","try"], correctIndex: 0 },
@@ -1630,18 +1491,15 @@ const QUESTIONS_RAW = [
   { question: "「〜来る」は英語で？", choices: ["come","go","arrive","visit"], correctIndex: 0 },
   { question: "「〜見る」は英語で？", choices: ["see","look","watch","view"], correctIndex: 0 },
   { question: "「〜知っている」は英語で？", choices: ["know","think","learn","remember"], correctIndex: 0 },
-
   { question: "「そして」は英語で？", choices: ["and","but","so","or"], correctIndex: 0 },
   { question: "「でも（しかし）」は英語で？", choices: ["but","and","or","so"], correctIndex: 0 },
   { question: "「または」は英語で？", choices: ["or","and","but","so"], correctIndex: 0 },
   { question: "「だから」は英語で？", choices: ["so","because","but","or"], correctIndex: 0 },
   { question: "「なぜなら」は英語で？", choices: ["because","so","but","then"], correctIndex: 0 },
-
   { question: "「この」は英語で？", choices: ["this","that","these","those"], correctIndex: 0 },
   { question: "「その（あれ）」は英語で？", choices: ["that","this","those","these"], correctIndex: 0 },
   { question: "「これら」は英語で？", choices: ["these","those","this","that"], correctIndex: 0 },
   { question: "「あれら」は英語で？", choices: ["those","these","that","this"], correctIndex: 0 },
-
   { question: "「ここ」は英語で？", choices: ["here","there","where","near"], correctIndex: 0 },
   { question: "「そこ／あそこ」は英語で？", choices: ["there","here","where","far"], correctIndex: 0 },
   { question: "「どこ」は英語で？", choices: ["where","what","when","why"], correctIndex: 0 },
@@ -1650,31 +1508,25 @@ const QUESTIONS_RAW = [
   { question: "「だれ」は英語で？", choices: ["who","what","when","where"], correctIndex: 0 },
   { question: "「どうして」は英語で？", choices: ["why","what","where","when"], correctIndex: 0 },
   { question: "「どうやって」は英語で？", choices: ["how","why","what","who"], correctIndex: 0 },
-
   { question: "「もし〜なら」は英語で？", choices: ["if","because","when","that"], correctIndex: 0 },
   { question: "「〜の時」は英語で？", choices: ["when","if","then","while"], correctIndex: 0 },
   { question: "「〜よりも（比較）」は英語で？", choices: ["than","then","that","when"], correctIndex: 0 },
-
   { question: "「とても」は英語で？", choices: ["very","really","too","so"], correctIndex: 0 },
   { question: "「本当に」は英語で？", choices: ["really","very","surely","truly"], correctIndex: 0 },
   { question: "「〜すぎる」は英語で？", choices: ["too","very","so","much"], correctIndex: 0 },
-
   { question: "「〜へ（方向）」は英語で？", choices: ["to","for","with","from"], correctIndex: 0 },
   { question: "「〜から」は英語で？", choices: ["from","to","for","by"], correctIndex: 0 },
   { question: "「〜と一緒に」は英語で？", choices: ["with","for","by","from"], correctIndex: 0 },
   { question: "「〜のために」は英語で？", choices: ["for","to","with","from"], correctIndex: 0 },
   { question: "「〜について」は英語で？", choices: ["about","around","over","after"], correctIndex: 0 },
-
   { question: "「〜できる」は英語で？", choices: ["can","may","must","should"], correctIndex: 0 },
   { question: "「〜しなければならない」は英語で？", choices: ["must","can","may","should"], correctIndex: 0 },
   { question: "「〜したほうがいい」は英語で？", choices: ["should","must","can","may"], correctIndex: 0 },
-
   { question: "「いつも」は英語で？", choices: ["always","often","usually","sometimes"], correctIndex: 0 },
   { question: "「よく（頻度）」は英語で？", choices: ["often","always","never","rarely"], correctIndex: 0 },
   { question: "「たいてい」は英語で？", choices: ["usually","always","often","sometimes"], correctIndex: 0 },
   { question: "「ときどき」は英語で？", choices: ["sometimes","usually","often","always"], correctIndex: 0 },
   { question: "「決して〜ない」は英語で？", choices: ["never","always","often","rarely"], correctIndex: 0 },
-
   { question: "「今（いま）」は英語で？", choices: ["now","today","soon","then"], correctIndex: 0 },
   { question: "「今日（きょう）」は英語で？", choices: ["today","now","tonight","this day"], correctIndex: 0 },
   { question: "「今夜（こんや）」は英語で？", choices: ["tonight","today","now","tomorrow"], correctIndex: 0 },
@@ -1701,19 +1553,18 @@ const qOverlay = document.getElementById("questionOverlay");
 const qText = document.getElementById("questionText");
 const choiceWrap = document.getElementById("choiceWrap");
 
+let currentQuestionIndex = 0;
 let firstTry = true;
 let questionOpen = false;
 
 function maybeTriggerQuestion(){
   if(isClearingLines) return;
   const threshold = (currentQuestionIndex + 1) * 5;
-  if(linesClearedTotal >= threshold){
-    showQuestion();
-  }
+  if(linesClearedTotal >= threshold) showQuestion();
 }
 
 function showQuestion(){
-  if(questionOpen) return;
+  if(questionOpen || gameOver) return;
   questionOpen = true;
 
   isPausedForQuestion = true;
@@ -1722,10 +1573,7 @@ function showQuestion(){
   pauseBGM();
   playSFX(AUDIO_FILES.quizOpen, 0.95);
 
-  if(currentQuestionIndex % QUESTIONS.length === 0){
-    buildQuestions();
-  }
-
+  if(currentQuestionIndex % QUESTIONS.length === 0) buildQuestions();
   const q = QUESTIONS[currentQuestionIndex % QUESTIONS.length];
 
   qText.textContent = q.question;
@@ -1743,7 +1591,6 @@ function showQuestion(){
     b.addEventListener("click", ()=>{
       if(c.originalIndex === q.correctIndex){
         b.classList.add("correct");
-
         playSFX(AUDIO_FILES.quizCorrect, 0.95);
 
         if(firstTry){
@@ -1776,7 +1623,7 @@ function showQuestion(){
 }
 
 /* ==============================
-   LEADERBOARD (LOCAL STORAGE)
+   LEADERBOARD (LOCAL STORAGE) (single system)
    ============================== */
 const LB_KEY = "booha_blocks_lb_v1";
 
@@ -1785,7 +1632,6 @@ const leaderClose = document.getElementById("leaderClose");
 const leaderList = document.getElementById("leaderList");
 const lbClearBtn = document.getElementById("lbClearBtn");
 
-/* ----- storage ----- */
 function getLocalBoard(){
   try{
     const raw = localStorage.getItem(LB_KEY);
@@ -1798,13 +1644,11 @@ function setLocalBoard(arr){
   try{ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }catch(e){}
 }
 
-/* ----- save score ----- */
 function saveLocalScore(){
   const entry = {
-    score: (typeof score !== "undefined") ? score : 0,
-    lines: (typeof linesCleared !== "undefined") ? linesCleared
-         : (typeof lines !== "undefined") ? lines : 0,
-    level: (typeof currentLevel !== "undefined") ? currentLevel : 1,
+    score,
+    lines: linesClearedTotal,
+    level: currentLevel,
     at: Date.now()
   };
 
@@ -1820,7 +1664,6 @@ function saveLocalScore(){
   setLocalBoard(board.slice(0,10));
 }
 
-/* ----- render ----- */
 function renderLocalLeaderboard(){
   if(!leaderList) return;
 
@@ -1849,33 +1692,26 @@ function renderLocalLeaderboard(){
   `).join("");
 }
 
-/* ----- open / close ----- */
 function openLeaderboard(){
   if(!leaderboardOverlay) return;
   isPaused = true;
-  pauseBGM?.();
+  pauseBGM();
   renderLocalLeaderboard();
   leaderboardOverlay.style.display = "flex";
 }
-
 function closeLeaderboard(){
   if(!leaderboardOverlay) return;
   leaderboardOverlay.style.display = "none";
   isPaused = false;
-  resumeLoop?.();
+  resumeLoop();
 }
 
-/* ----- buttons ----- */
-if(leaderClose){
-  leaderClose.onclick = closeLeaderboard;
-}
-
+if(leaderClose) leaderClose.onclick = closeLeaderboard;
 if(leaderboardOverlay){
   leaderboardOverlay.addEventListener("click",(e)=>{
     if(e.target === leaderboardOverlay) closeLeaderboard();
   });
 }
-
 if(lbClearBtn){
   lbClearBtn.onclick = ()=>{
     try{ localStorage.removeItem(LB_KEY); }catch(e){}
@@ -1883,16 +1719,16 @@ if(lbClearBtn){
   };
 }
 
-
-   
 /* ==============================
-   PAUSE / HELP / LEADERBOARD + LOCAL STORAGE
+   PAUSE / HELP / TROPHY
    ============================== */
 const pauseBtn = document.getElementById("pauseBtn");
-const pauseOverlay = document.getElementById("pauseOverlay");
+const helpBtn = document.getElementById("helpBtn");
+const helpClose = document.getElementById("helpClose");
+const trophyBtn = document.getElementById("trophyBtn");
 
 pauseBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
+  if(!gameStarted || gameOver) return;
   isPaused = !isPaused;
   pauseOverlay.style.display = isPaused ? "flex" : "none";
   if(isPaused) pauseBGM();
@@ -1904,12 +1740,8 @@ pauseOverlay.onclick = ()=>{
   resumeLoop();
 };
 
-const helpBtn = document.getElementById("helpBtn");
-const helpOverlay = document.getElementById("helpOverlay");
-const helpClose = document.getElementById("helpClose");
-
 helpBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
+  if(!gameStarted || gameOver) return;
   isPaused = true;
   pauseBGM();
   pauseOverlay.style.display = "none";
@@ -1921,231 +1753,60 @@ helpClose.onclick = ()=>{
   resumeLoop();
 };
 
-/* ==============================
-   TROPHY (AUTO LEADERBOARD OVERLAY)
-   ============================== */
-const trophyBtn = document.getElementById("trophyBtn");
-
-function ensureLeaderboardOverlay(){
-  let ov = document.getElementById("leaderboardOverlay");
-  if(ov) return ov;
-
-  ov = document.createElement("div");
-  ov.id = "leaderboardOverlay";
-  ov.style.cssText = `
-    position:fixed; inset:0; z-index:9999;
-    display:none; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.65); backdrop-filter:blur(6px);
-  `;
-
-  ov.innerHTML = `
-    <div style="
-      width:min(520px,92vw);
-      border-radius:24px;
-      padding:18px;
-      background:rgba(15,15,20,.94);
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 20px 70px rgba(0,0,0,.55);
-      color:#fff;
-    ">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <div style="font-weight:900;letter-spacing:.6px;">LEADERBOARD</div>
-        <button id="leaderClose" style="
-          font:inherit; font-weight:900;
-          padding:10px 14px; border-radius:999px;
-          border:1px solid rgba(255,255,255,.22);
-          background:rgba(255,255,255,.08);
-          color:#fff;
-        ">CLOSE</button>
-      </div>
-
-      <div id="leaderList" style="margin-top:12px;"></div>
-    </div>
-  `;
-
-  document.body.appendChild(ov);
-
-  ov.querySelector("#leaderClose").onclick = ()=>{
-    ov.style.display = "none";
-    isPaused = false;
-    resumeLoop();
-  };
-
-  // clicking outside closes too
-  ov.addEventListener("click",(e)=>{
-    if(e.target === ov){
-      ov.style.display = "none";
-      isPaused = false;
-      resumeLoop();
-    }
-  });
-
-  return ov;
-}
-
 if(trophyBtn){
   trophyBtn.onclick = ()=>{
     if(!gameStarted) return;
-    isPaused = true;
-    pauseBGM();
-    const ov = ensureLeaderboardOverlay();
-    ov.style.display = "flex";
-    renderLocalLeaderboard(); // fills #leaderList
+    openLeaderboard();
   };
 }
 
-
 /* ==============================
-   LOCAL LEADERBOARD (localStorage)
+   START / RESTART
    ============================== */
-const LB_KEY = "booha_blocks_lb_v1";
-
-function getLocalBoard(){
-  try{
-    const raw = localStorage.getItem(LB_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr : [];
-  }catch(e){
-    return [];
-  }
-}
-function setLocalBoard(arr){
-  try{ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }catch(e){}
-}
-
-/** ✅ Save current run into localStorage top10 */
-function saveLocalScore(){
-  // Adjust these names ONLY if your code uses different variables:
-  const entry = {
-    score: (typeof score !== "undefined") ? score : 0,
-    lines: (typeof linesCleared !== "undefined") ? linesCleared
-         : (typeof lines !== "undefined") ? lines : 0,
-    level: (typeof currentLevel !== "undefined") ? currentLevel : 1,
-    at: Date.now()
-  };
-
-  const board = getLocalBoard();
-  board.push(entry);
-
-  board.sort((a,b)=>
-    (b.score - a.score) ||
-    (b.lines - a.lines) ||
-    (b.at - a.at)
-  );
-
-  setLocalBoard(board.slice(0,10));
-}
-
-/** ✅ Render leaderboard into your existing overlay */
-function renderLocalLeaderboard(){
-  // You need ONE container inside #leaderboardOverlay for list items.
-  // We’ll try these ids first:
-  const list =
-    document.getElementById("leaderList") ||
-    document.getElementById("leaderboardList") ||
-    document.querySelector("#leaderboardOverlay .list") ||
-    document.querySelector("#leaderboardOverlay .board") ||
-    document.querySelector("#leaderboardOverlay .content") ||
-    document.querySelector("#leaderboardOverlay");
-
-  if(!list) return;
-
-  const board = getLocalBoard();
-
-  // If your overlay already has a title and close button,
-  // we only want to overwrite the list area. If you're currently
-  // rendering into the whole overlay, this still works.
-  const fmt = (t)=>{
-    try{
-      const d = new Date(t);
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${mm}/${dd}`;
-    }catch(e){ return ""; }
-  };
-
-  // ✅ If you have a dedicated list container, this is perfect.
-  // If not, it will still show in the overlay.
-  if(board.length === 0){
-    list.innerHTML = `<div style="opacity:.85; padding:10px;">No scores yet.</div>`;
-    return;
-  }
-
-  list.innerHTML = board.map((e,i)=>`
-    <div style="
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:10px 12px; margin:8px 0;
-      border-radius:14px;
-      background:rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.12);
-    ">
-      <div style="display:flex; align-items:baseline; gap:10px;">
-        <div style="font-weight:900; min-width:38px;">#${i+1}</div>
-        <div style="opacity:.92;">Score <b>${e.score}</b></div>
-        <div style="opacity:.85;">Lines ${e.lines}</div>
-        <div style="opacity:.85;">Lv ${e.level}</div>
-      </div>
-      <div style="opacity:.7;">${fmt(e.at)}</div>
-    </div>
-  `).join("");
-}
-
-/* ==============================
-   GAME OVER (end run + save + show)
-   ============================== */
-// globals (keep if you already have them elsewhere)
-let gameInterval;
-let rafId;
-let isGameOver = false;
-
-// ✅ Call this when top-out happens (spawn collision, etc.)
-function gameOver(){
-  if(isGameOver) return;
-  isGameOver = true;
-
-  // stop loops
-  if(gameInterval) clearInterval(gameInterval);
-  if(rafId) cancelAnimationFrame(rafId);
-
-  // lock pause overlays
-  isPaused = true;
-  pauseOverlay.style.display = "none";
-  helpOverlay.style.display = "none";
-
-  // show end overlay (your existing function)
-  showEndOverlay();
-
-  // save + render
-  saveLocalScore();
-  renderLocalLeaderboard();
-}
-
-   
-/* ==============================
-   START OVERLAY
-   ============================== */
-const startOverlay = document.getElementById("startOverlay");
-const startInner   = document.getElementById("startOverlayInner");
-
-async function startGame(){
-  if(gameStarted || isGameOver) return;
-
-  await unlockAudioOnce();
-
-  gameStarted = true;
+function hardReset(){
+  // reset state
+  gameOver = false;
   isPaused = false;
+  isPausedForQuestion = false;
+  gameStarted = false;
 
-  currentLevel = calcLevel();
-  const t = LEVEL_THEMES[(currentLevel - 1) % LEVEL_THEMES.length];
+  score = 0;
+  linesClearedTotal = 0;
+  currentQuestionIndex = 0;
+
+  frameCounter = 0;
+  gravityFrames = 40;
+  currentLevel = 1;
+
+  // clear field
+  for(let r=-2;r<20;r++){
+    playfield[r] = Array(10).fill(0);
+  }
+
+  piece = nextPiece();
+  updateGravity();
+  updateHud();
+
+  const t = LEVEL_THEMES[0];
   document.documentElement.style.setProperty("--pink", t.p);
   document.documentElement.style.setProperty("--aqua", t.s);
 
   tickGlow();
-  updateHud();
+  draw();
+}
+
+async function startGame(){
+  if(gameStarted && !gameOver) return;
+
+  await unlockAudioOnce();
+
+  // restart path
+  hardReset();
+
+  gameStarted = true;
+  startInner.innerHTML = `<span class="big">3</span>`;
 
   let count = 3;
-  startInner.innerHTML = `<span class="big">${count}</span>`;
-
   const timer = setInterval(()=>{
     count--;
     if(count > 0){
@@ -2155,11 +1816,10 @@ async function startGame(){
       startInner.innerHTML = `<span class="big">GO!</span>`;
       setTimeout(()=>{
         startOverlay.style.display = "none";
-        updateHud();
-        resumeLoop(); // ✅ start the main loop
-      }, 500);
+        resumeLoop();
+      }, 350);
     }
-  }, 700);
+  }, 650);
 }
 
 startOverlay.addEventListener("click", startGame);
@@ -2168,14 +1828,14 @@ startOverlay.addEventListener("touchstart", (e)=>{
   startGame();
 }, {passive:false});
 
-
 /* ==============================
    INIT
    ============================== */
 updateGravity();
 updateHud();
-
+draw();
 </script>
+
 </body>
 </html>
-
+   
