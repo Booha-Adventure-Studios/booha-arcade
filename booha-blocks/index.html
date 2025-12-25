@@ -742,17 +742,32 @@ html, body, #game, #ui, #controls, canvas{
   .lbMeta{ opacity:.92; }
   .lbDim{ opacity:.75; }
 
-  .lbClear{
-    width:100%;
-    font:inherit;
-    font-weight:900;
-    padding:12px 14px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.22);
-    background:rgba(255,209,102,.95);
-    color:#000;
-  }
-  </style>
+ .lbClear{
+  width:100%;
+  font:inherit;
+  font-weight:900;
+  padding:12px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,209,102,.95);
+  color:#000;
+}
+
+/* ✅ iOS button reset for top bar (prevents zoom) */
+#helpBtn, #trophyBtn, #pauseBtn{
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+</style>
+
 </head>
 
 <body>
@@ -785,43 +800,44 @@ html, body, #game, #ui, #controls, canvas{
 <div class="shell">
 
   <!-- ✅ TOP BAR -->
-  <div class="topbar">
-    <div class="leftSlot">
-      <div id="helpBtn">？</div>
-    </div>
-
-    <div class="titleSlot">
-      <h1>
-        BOOHA BLOCKS
-        <span>ブーハー・ブロックス</span>
-      </h1>
-    </div>
-
-    <div class="rightSlot">
-      <div id="trophyBtn">🏆</div>
-      <div id="pauseBtn">⏸</div>
-    </div>
+<div class="topbar">
+  <div class="leftSlot">
+    <button id="helpBtn" type="button" aria-label="Help">？</button>
   </div>
 
-  <div class="hud-row">
-    <div>
-      <span class="label">ライン：</span>
-      <span class="value" id="linesCount">0</span>
-    </div>
-    <div>
-      <span class="label">次のクイズ：</span>
-      <span class="next" id="nextAt">5</span>
-      <span class="label">ライン</span>
-    </div>
+  <div class="titleSlot">
+    <h1>
+      BOOHA BLOCKS
+      <span>ブーハー・ブロックス</span>
+    </h1>
   </div>
 
-  <div class="hud-row">
-    <div>
-      <span class="label">スコア：</span>
-      <span class="value" id="scoreValue">0</span>
-    </div>
-    <div></div>
+  <div class="rightSlot">
+    <button id="trophyBtn" type="button" aria-label="Leaderboard">🏆</button>
+    <button id="pauseBtn" type="button" aria-label="Pause">⏸</button>
   </div>
+</div>
+
+<div class="hud-row">
+  <div>
+    <span class="label">ライン：</span>
+    <span class="value" id="linesCount">0</span>
+  </div>
+  <div>
+    <span class="label">次のクイズ：</span>
+    <span class="next" id="nextAt">5</span>
+    <span class="label">ライン</span>
+  </div>
+</div>
+
+<div class="hud-row">
+  <div>
+    <span class="label">スコア：</span>
+    <span class="value" id="scoreValue">0</span>
+  </div>
+  <div></div>
+</div>
+
 
   <canvas id="game" width="320" height="640"></canvas>
 
