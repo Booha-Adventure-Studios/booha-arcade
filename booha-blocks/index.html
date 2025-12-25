@@ -1861,6 +1861,28 @@ function bindHoldRepeat(btn, stepFn, DAS=120, ARR=55){
     if(repeatTimer){ clearInterval(repeatTimer); repeatTimer=null; }
   };
 
+/* ==============================
+   GRAVITY TIMER (desktop-safe)
+   ============================== */
+let gravityTimer = null;
+const DROP_MS = 650;
+
+function startGravity(){
+  stopGravity();
+  gravityTimer = setInterval(()=>{
+    if(!gameStarted || isGameOver) return;
+    stepDown();
+  }, DROP_MS);
+}
+
+function stopGravity(){
+  if(gravityTimer){
+    clearInterval(gravityTimer);
+    gravityTimer = null;
+  }
+}
+  
+
   const start = (e)=>{
     e.preventDefault();
     e.stopPropagation();
@@ -2283,10 +2305,12 @@ async function startGame(){
     }else{
       clearInterval(timer);
       startInner.innerHTML = `<span class="big">GO!</span>`;
-      setTimeout(()=>{
-        startOverlay.style.display = "none";
-        resumeLoop();
-      }, 350);
+     setTimeout(()=>{
+  startOverlay.style.display = "none";
+  startGravity();   // ✅ add this line
+  resumeLoop();
+}, 350);
+
     }
   }, 650);
 }
