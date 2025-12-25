@@ -75,20 +75,27 @@
     overflow:hidden;
   }
 
-  /* iOS/iPad: STOP tap zoom + selection + callouts */
-  body, .shell, canvas, #startOverlay, #questionOverlay,
-  #mobileControls, #mobileDownRow,
-  .mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
-    -webkit-user-select:none;
-    user-select:none;
-    -webkit-touch-callout:none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action:manipulation;
-  }
-  #game{
-    touch-action:none;
-    -ms-touch-action:none;
-  }
+ /* iOS/iPad: STOP tap zoom + selection + callouts (but don’t break controls) */
+body, .shell, canvas, #startOverlay, #questionOverlay,
+#mobileControls, #mobileDownRow,
+.mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ✅ Allow buttons to behave nicely (tap, no zoom) */
+.mob-btn, #moveDownBtn, .choiceBtn, #helpBtn, #trophyBtn, #pauseBtn{
+  touch-action: manipulation;
+}
+
+/* ✅ Game canvas: never allow scrolling/zooming gestures */
+#game{
+  touch-action: none;
+  -ms-touch-action: none;
+}
+
 
   /* whole-screen bloom */
   body::before{
@@ -403,6 +410,23 @@
       0 3px 10px rgba(245,158,11,0.8),
       inset 0 2px 4px rgba(0,0,0,0.25);
   }
+
+
+/* ✅ Mobile arrows: wider pill shape */
+#moveLeftBtn,
+#moveRightBtn{
+  width:96px;          /* wider */
+  height:52px;         /* same height */
+  border-radius:999px; /* pill */
+  font-size:22px;
+}
+
+/* ✅ Prevent hit-area overlap bugs on wide buttons */
+#moveLeftBtn::before,
+#moveRightBtn::before{
+  display:none;
+}
+     
 
   /* show controls on touch devices */
   @media (pointer:coarse){
@@ -792,27 +816,28 @@
     <div class="help-card">
       <div id="helpClose">✕</div>
       <div class="help-title">How to Play ／ 遊び方</div>
-      <div class="help-text">
-        <p>● 左 ← と 右 → ボタンでブロックを動かす。</p>
-        <p>● ピンクの回転ボタンでブロックを回す。</p>
-        <p>● 下 ボタンを「タップ」すると1マス下に落ちる。</p>
-        <p>● 下 ボタンを「長押し」すると、すばやく落ちる（ソフトドロップ）。</p>
-        <br>
-        <p>● Use ← and → to move the block.</p>
-        <p>● Use the pink button to rotate the block.</p>
-        <p>● Tap the ↓ button to drop 1 square.</p>
-        <p>● Hold the ↓ button to accelerate the fall (soft-drop).</p>
-        <br>
-        <p>5ラインごとにクイズが出るよ！</p>
-      </div>
+     <div class="help-text">
+  <p>● 左 ← と 右 → ボタンでブロックを動かす。</p>
+  <p>● ピンクの回転ボタンでブロックを回す。</p>
+  <p>● 下 ↓ ボタンを「タップ」すると1マス下に落ちる。</p>
+  <br>
+  <p>● Use ← and → to move the block.</p>
+  <p>● Use the pink button to rotate the block.</p>
+  <p>● Tap the ↓ button to drop 1 square.</p>
+  <br>
+  <p>5ラインごとにクイズが出るよ！</p>
+</div>
+
     </div>
   </div>
 
-  <div id="mobileControls">
-    <div class="mob-btn" id="moveLeftBtn">←</div>
-    <div class="mob-btn" id="rotateBtn">↻</div>
-    <div class="mob-btn" id="moveRightBtn">→</div>
-  </div>
+<div id="mobileControls">
+  <div class="mob-btn wide" id="moveLeftBtn">←</div>
+  <div class="mob-btn" id="rotateBtn">↻</div>
+  <div class="mob-btn wide" id="moveRightBtn">→</div>
+</div>
+
+
 
   <div id="mobileDownRow">
     <div class="mob-btn" id="moveDownBtn">↓ DROP</div>
@@ -1378,6 +1403,7 @@ function loop(){
 
 function resumeLoop(){
   if(gameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+
   if(rafId) cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
   resumeBGM();
@@ -1388,7 +1414,7 @@ document.addEventListener("keydown", (e)=>{
   if(!gameStarted || gameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
   if(e.key==="ArrowLeft" && valid(piece.matrix, piece.row, piece.col-1)) piece.col--;
-  if(e.key==="ArrowRight"&& valid(piece.matrix, piece.row, piece.col+1)) piece.col++;
+  if(e.key==="ArrowRight" && valid(piece.matrix, piece.row, piece.col+1)) piece.col++;
   if(e.key==="ArrowUp"){
     const r = rotate(piece.matrix);
     if(valid(r, piece.row, piece.col)) piece.matrix = r;
@@ -1471,7 +1497,8 @@ function bindTapOnly(btn, fn){
 bindTapOnly(moveDownBtn, downStep);
 bindHoldRepeat(moveRightBtn, stepRight, 110, 45);
 bindTapOnly(rotateBtn, stepRotate);
-bindHoldRepeat(moveDownBtn, downStep, 85, 35);
+bindTapOnly(moveDownBtn, downStep);
+
 
 /* ==============================
    QUESTION GATE
@@ -1727,13 +1754,14 @@ const helpBtn = document.getElementById("helpBtn");
 const helpClose = document.getElementById("helpClose");
 const trophyBtn = document.getElementById("trophyBtn");
 
-pauseBtn.onclick = ()=>{
+helpBtn.onclick = ()=>{
   if(!gameStarted || gameOver) return;
-  isPaused = !isPaused;
-  pauseOverlay.style.display = isPaused ? "flex" : "none";
-  if(isPaused) pauseBGM();
-  if(!isPaused) resumeLoop();
+  isPaused = true;
+  pauseBGM();
+  pauseOverlay.style.display = "none";
+  helpOverlay.style.display = "flex";
 };
+
 pauseOverlay.onclick = ()=>{
   isPaused=false;
   pauseOverlay.style.display="none";
