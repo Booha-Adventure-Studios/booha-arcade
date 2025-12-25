@@ -901,6 +901,40 @@ html, body, #game, #ui, #controls, canvas{
   }, opts);
 })();
 
+/* ✅ iOS: hard no-zoom shield ONLY inside the game area (prevents late zoom) */
+(function iosNoZoomScoped(){
+  const root = document.querySelector("#game") || document.body;
+  const opts = { passive:false };
+
+  function isFormEl(el){
+    return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT");
+  }
+
+  // Block touchstart defaults in the game area (Safari’s late double-tap zoom)
+  root.addEventListener("touchstart", (e) => {
+    if(!e.cancelable) return;
+    if(isFormEl(e.target)) return;      // allow typing / name input
+    e.preventDefault();
+  }, opts);
+
+  // Block multi-touch move in the game area
+  root.addEventListener("touchmove", (e) => {
+    if(!e.cancelable) return;
+    if(isFormEl(e.target)) return;
+    if(e.touches && e.touches.length > 1) e.preventDefault();
+  }, opts);
+
+  // Block double-tap zoom in the game area
+  let last = 0;
+  root.addEventListener("touchend", (e) => {
+    if(!e.cancelable) return;
+    if(isFormEl(e.target)) return;
+    const now = Date.now();
+    if(now - last <= 350) e.preventDefault();
+    last = now;
+  }, opts);
+})();
+   
 
    
 /* ==============================
