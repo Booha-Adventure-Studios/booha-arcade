@@ -766,7 +766,28 @@ html, body, #game, #ui, #controls, canvas{
   cursor: pointer;
   touch-action: manipulation;
 }
+
+/* ==============================
+   DESKTOP SIZE FIX (Step 1)
+   ============================== */
+@media (min-width: 900px){
+  .titleSlot h1{ font-size: 44px; }
+  .titleSlot h1 span{ font-size: 16px; }
+
+  /* make the whole game area bigger on desktop */
+  .shell, .gameShell, .outerShell, .wrap, .frame{
+    width: min(1040px, 94vw) !important;
+    height: min(820px, 92vh) !important;
+  }
+
+  /* make the board/canvas bigger if it’s being constrained */
+  canvas, .gameCanvas, #game, #board{
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
 </style>
+
 
 </head>
 
