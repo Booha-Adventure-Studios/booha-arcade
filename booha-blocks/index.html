@@ -2491,6 +2491,23 @@ window.booha.startFromOverlay = startFromOverlay;
 window.booha.triggerGameOver  = triggerGameOver;
 window.addEventListener("booha:start", startFromOverlay);
 
+window.addEventListener("load", ()=>{
+  const so = document.getElementById("startOverlay");
+  if(!so){
+    console.log("NO startOverlay FOUND");
+    return;
+  }
+  console.log("startOverlay FOUND — attaching handler");
+
+  so.addEventListener("pointerdown", (e)=>{
+    console.log("OVERLAY TAP");
+    e.preventDefault();
+    e.stopPropagation();
+    startFromOverlay();
+  }, { passive:false });
+});
+   
+
 /* ==============================
    INIT (SAFE FINAL)
    ============================== */
