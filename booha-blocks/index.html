@@ -812,7 +812,7 @@ body, .shell, canvas, #startOverlay, #questionOverlay,
     z-index:1;
   }
 
- /* START OVERLAY */
+/* START OVERLAY */
 #startOverlay{
   position:fixed;
   inset:0;
@@ -823,6 +823,10 @@ body, .shell, canvas, #startOverlay, #questionOverlay,
   z-index:60;
   text-align:center;
 }
+
+/* ✅ add these right here */
+#startOverlay { pointer-events:auto; }
+#startOverlayInner { pointer-events:none; } /* so the outer overlay always receives the tap */
 
 #startOverlayInner{
   padding:20px 18px;
@@ -2321,6 +2325,23 @@ function triggerGameOver(){
 const startOverlay = document.getElementById("startOverlay");
 const startInner   = document.getElementById("startOverlayInner");
 
+// ✅ START OVERLAY: use pointerdown (click may be killed by touchend preventDefault)
+(function(){
+  const startOverlay = document.getElementById("startOverlay");
+  if(!startOverlay) return;
+
+  startOverlay.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();          // stop gesture / zoom
+    if(typeof startFromOverlay === "function"){
+      startFromOverlay();        // countdown → startGame()
+    }else if(typeof startGame === "function"){
+      startGame();               // fallback
+      startOverlay.style.display = "none";
+    }
+  }, {passive:false});
+})();
+
+   
 function hardReset(){
   // reset flags
   isGameOver = false;
