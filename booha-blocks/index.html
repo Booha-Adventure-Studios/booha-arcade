@@ -1779,8 +1779,20 @@ function loop(){
 
 function resumeLoop(){
   console.log("resumeLoop called");
+
+  if(isGameOver || !gameStarted) return;
+
+  // ✅ clear all pause states (pause + quiz)
+  isPaused = false;
+  isPausedForQuestion = false;
+
+  if(rafId) cancelAnimationFrame(rafId);
   rafId = requestAnimationFrame(loop);
+
+  // ✅ bring music back
+  resumeBGM?.();
 }
+
 
 
 /* desktop keys */
