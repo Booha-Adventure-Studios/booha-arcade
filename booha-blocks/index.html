@@ -2274,6 +2274,15 @@ if(trophyBtn){
   };
 }
 
+<!-- ==============================
+     GAME OVER + START OVERLAY (FIXED)
+     - No duplicate start triggers
+     - Overlay tap runs startGame() only
+     - iPad zoom-fix stays, but does NOT call resumeLoop directly
+     - Proper </script> placement (no <script> inside JS)
+     ============================== -->
+
+<script>
 /* ==============================
    GAME OVER
    ============================== */
@@ -2289,13 +2298,12 @@ function triggerGameOver(){
   // ✅ show leaderboard immediately
   openLeaderboard();
 
-  // ✅ allow tap restart (simple)
-  // (tap outside leaderboard closes; then tap start overlay to restart)
+  // ✅ show overlay to restart
   startOverlay.style.display = "flex";
   startInner.innerHTML = `<span class="big">GAME OVER</span>タップしてリスタート`;
-  gameStarted = false;
 
-  // reset board when starting again
+  // ✅ allow restart
+  gameStarted = false;
 }
 
 /* ==============================
@@ -2363,6 +2371,10 @@ async function startGame(){
     }else{
       clearInterval(timer);
       startInner.innerHTML = `<span class="big">GO!</span>`;
+
+      // ✅ IMPORTANT:
+      // Let the game start itself (startGame already sets gameStarted).
+      // We hide the overlay here and then resume the loop exactly once.
       setTimeout(()=>{
         startOverlay.style.display = "none";
         resumeLoop();
@@ -2371,19 +2383,103 @@ async function startGame(){
   }, 700);
 }
 
-startOverlay.addEventListener("click", startGame);
-startOverlay.addEventListener("touchstart", (e)=>{
-  e.preventDefault();
-  startGame();
-}, {passive:false});
-
 /* ==============================
    INIT
    ============================== */
 updateGravity();
 updateHud();
 </script>
+
+<!-- INSERT THIS SCRIPT just before the closing </body> tag -->
+<script>
+/*
+  START-OVERLAY + iPad zoom-fix
+  - Robust pointer handler for overlay
+  - Prevent double-tap zoom
+  - Prevent pinch zoom (iOS gesturestart)
+  - Calls startGame() ONLY (do NOT call resumeLoop here)
+*/
+(function () {
+  const startOverlay = document.getElementById('startOverlay');
+  const inner = document.getElementById('startOverlayInner');
+  if (!startOverlay) return;
+
+  // Visual + interaction safety for the overlay
+  startOverlay.style.touchAction = startOverlay.style.touchAction || 'manipulation';
+  startOverlay.style.webkitUserSelect = 'none';
+  startOverlay.style.userSelect = 'none';
+  startOverlay.style.cursor = 'pointer';
+  startOverlay.style.pointerEvents = 'auto';
+  if (inner) {
+    inner.style.pointerEvents = 'auto';
+    inner.style.touchAction = inner.style.touchAction || 'manipulation';
+  }
+
+  // Guard flag
+  window.gameStarted = !!window.gameStarted;
+
+  function startFromOverlay(ev) {
+    if (ev && typeof ev.preventDefault === 'function') {
+      ev.preventDefault();
+      ev.stopPropagation();
+    }
+
+    // If the game is already started, ignore extra taps
+    if (window.gameStarted) return;
+
+    // Mark started so iPad doesn't double-fire
+    window.gameStarted = true;
+
+    // IMPORTANT: don't hide overlay here (startGame shows countdown on it)
+    // Only call startGame; it handles countdown + hide + resumeLoop.
+    if (typeof window.startGame === 'function') {
+      try { window.startGame(); } catch (err) { console.warn("startGame threw:", err); }
+    } else {
+      // fallback event
+      document.dispatchEvent(new CustomEvent('booha.start', { bubbles: true }));
+    }
+  }
+
+  // Attach pointerup
+  startOverlay.addEventListener('pointerup', startFromOverlay, { passive: false });
+  if (inner) inner.addEventListener('pointerup', startFromOverlay, { passive: false });
+
+  // Swallow quick double taps
+  let __booha_last_touch = 0;
+  document.addEventListener('touchend', function (evt) {
+    const now = Date.now();
+    if (now - __booha_last_touch <= 300) {
+      try { evt.preventDefault(); evt.stopPropagation(); } catch {}
+    }
+    __booha_last_touch = now;
+  }, { passive: false });
+
+  // Prevent pinch zoom on iOS
+  document.addEventListener('gesturestart', function (e) {
+    try { e.preventDefault(); } catch {}
+  });
+
+  // Extra double-tap prevention
+  startOverlay.addEventListener('pointerdown', function (e) {
+    if (e.detail > 1) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, { passive: false });
+
+  // Keyboard
+  startOverlay.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      startFromOverlay(e);
+    }
+  });
+
+  // helper
+  window.booha = window.booha || {};
+  window.booha.startFromOverlay = startFromOverlay;
+})();
+</script>
 </body>
 </html>
 
-   
