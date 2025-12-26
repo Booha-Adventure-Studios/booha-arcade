@@ -2317,19 +2317,16 @@ function triggerGameOver(){
 
   // ✅ allow restart
   gameStarted = false;
-}
-/*==============================
-     START OVERLAY + GAME START (FINAL CLEAN)
-     What this fixes:
-     ✅ Removes duplicate/competing start handlers
-     ✅ Removes broken nested <script> tags
-     ✅ Uses ONE iOS-safe pointerdown start
-     ✅ Keeps your countdown (3-2-1-GO) and then calls startGame()
-     ✅ Keeps optional booha:start event support
-     ✅ Closes the file cleanly at the very bottom
-     ============================== */
+
 
 <script>
+/* ============================================================
+   START OVERLAY + GAME START (CLEAN)
+   - ONE start handler (pointerdown, iOS-safe)
+   - Countdown (3-2-1-GO) then startGame()
+   - No duplicate handlers, no nested <script>
+   ============================================================ */
+
 /* ==============================
    START OVERLAY (single-source)
    ============================== */
@@ -2399,8 +2396,7 @@ async function startGame(){
   tickGlow();
   updateHud();
 
-  // ✅ If your game loop requires a kick, start it here.
-  // If your loop auto-runs elsewhere, leave this OFF.
+  // If your loop needs a kick, start it here ONLY if required by your codebase:
   // resumeLoop();
 }
 
@@ -2433,7 +2429,7 @@ function startFromOverlay(){
 window.booha = window.booha || {};
 window.booha.startFromOverlay = startFromOverlay;
 
-/* Optional: allow other scripts to trigger the start via event */
+/* Optional: allow other scripts to trigger start via event */
 window.addEventListener("booha:start", startFromOverlay);
 
 /* ==============================
@@ -2443,8 +2439,6 @@ updateGravity();
 updateHud();
 </script>
 
-<!-- ==============================
-     VERY BOTTOM OF FILE (CLEAN)
-     ============================== -->
 </body>
 </html>
+   
