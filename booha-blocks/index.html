@@ -898,6 +898,27 @@ html, body{
 #game, canvas{
   touch-action: none;
 }
+
+/* ✅ iOS Safari – stable, no lock */
+html, body {
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+#game {
+  touch-action: none;          /* canvas only */
+}
+
+.mob-btn,
+#pauseBtn,
+#helpBtn,
+#trophyBtn,
+#startOverlay {
+  touch-action: manipulation; /* allow taps, block zoom */
+}
+
+     
 </style>
 </head>
 <body>
@@ -1254,16 +1275,9 @@ preventTouchMove(document.getElementById("startOverlay"));
 preventTouchMove(document.getElementById("questionOverlay"));
 preventTouchMove(document.querySelector(".shell"));
 
-
 /* iOS pinch/double-tap zoom guard */
 document.addEventListener("gesturestart", (e)=> e.preventDefault(), { passive:false });
 
-let __lastTouchEnd = 0;
-document.addEventListener("touchend", (e)=>{
-  const now = Date.now();
-  if(now - __lastTouchEnd <= 300) e.preventDefault();
-  __lastTouchEnd = now;
-}, { passive:false });
 
 /* ✅ unified flags */
 let gameStarted = false;
