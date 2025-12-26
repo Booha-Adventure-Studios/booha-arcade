@@ -111,16 +111,17 @@
     overflow:hidden;
   }
 
-  html{
-    -webkit-text-size-adjust:100%;
-    overscroll-behavior:none; /* ✅ kill rubber-band */
-    touch-action:none;        /* ✅ kill pan/zoom */
-  }
+ html{
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+  touch-action:manipulation;
+}
 
-  body{
-    overscroll-behavior:none; /* ✅ kill rubber-band */
-    touch-action:none;        /* ✅ kill pan/zoom */
-  }
+body{
+  overscroll-behavior:none;
+  touch-action:manipulation;
+}
+
 
   body{
     display:flex;
