@@ -2372,11 +2372,13 @@ window.addEventListener("DOMContentLoaded", ()=>{
     return;
   }
 
-  startOverlay.addEventListener("pointerdown", (e)=>{
-    e.preventDefault();
-    e.stopPropagation();
-    startFromOverlay();
-  }, { passive:false });
+ startOverlay.addEventListener("pointerdown", (e)=>{
+  console.log("OVERLAY TAP");
+  e.preventDefault();
+  e.stopPropagation();
+  startFromOverlay();
+}, { passive:false });
+
 
   console.log("✅ startOverlay handler attached");
 });
