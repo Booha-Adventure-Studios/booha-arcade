@@ -1170,8 +1170,6 @@ function applyLevelThemeAndMaybeSound(){
 }
 
 
-
-<script>
 /* ==============================
    REACTIVE GLOW
    ============================== */
@@ -1304,9 +1302,7 @@ document.addEventListener("keydown", (e)=>{
     else lockPiece();
   }
 });
-</script>
 
-<script>
 /* ==============================
    MOBILE CONTROLS (hold-repeat on L/R only)
    ✅ ↓ = TAP ONLY (one-step drop)
@@ -1320,6 +1316,17 @@ function canInput(){
 
   return gameStarted && !isGameOver && !isPaused && !isPausedForQuestion && !isClearingLines;
 }
+
+// ✅ Safety: kill any stuck hold-repeat if focus or pointer is lost
+window.addEventListener("blur", ()=>{
+  try{ document.dispatchEvent(new Event("boohaStopHolds")); }catch(_){}
+});
+
+// ✅ Pointer-up anywhere = stop holds (prevents stuck movement)
+window.addEventListener("pointerup", ()=>{
+  try{ document.dispatchEvent(new Event("boohaStopHolds")); }catch(_){}
+}, { passive:true });
+   
 function stepLeft(){ if(canInput() && valid(piece.matrix,piece.row,piece.col-1)) piece.col--; }
 function stepRight(){ if(canInput() && valid(piece.matrix,piece.row,piece.col+1)) piece.col++; }
 function stepRotate(){
@@ -1341,14 +1348,21 @@ function bindHoldRepeat(btn, stepFn, DAS=120, ARR=55){
   let active = false;
 
   const stop = ()=>{
+    if(!active) return;
     active = false;
     if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; }
     if(repeatTimer){ clearInterval(repeatTimer); repeatTimer=null; }
   };
 
   const start = (e)=>{
-    if(e && e.cancelable) e.preventDefault();
-    if(e) e.stopPropagation();
+    if(e){
+      // only left/primary touch/pen
+      if("button" in e && e.button !== 0) return;
+      if("isPrimary" in e && !e.isPrimary) return;
+
+      if(e.cancelable) e.preventDefault();
+      e.stopPropagation();
+    }
     if(active) return;
     active = true;
 
@@ -1363,21 +1377,29 @@ function bindHoldRepeat(btn, stepFn, DAS=120, ARR=55){
     start(e);
   }, {passive:false});
 
+  // stop when the button loses the pointer or the pointer ends
   btn.addEventListener("pointerup", stop, {passive:true});
   btn.addEventListener("pointercancel", stop, {passive:true});
+  btn.addEventListener("lostpointercapture", stop, {passive:true});
   btn.addEventListener("pointerleave", stop, {passive:true});
-  btn.addEventListener("touchend", stop, {passive:true});
-  btn.addEventListener("touchcancel", stop, {passive:true});
+
+  // ✅ Global kill signal (you already pasted the dispatcher)
+  document.addEventListener("boohaStopHolds", stop, { passive:true });
 }
 
 function bindTap(btn, fn){
   if(!btn) return;
+
   btn.addEventListener("pointerdown",(e)=>{
-    if(e && e.cancelable) e.preventDefault();
+    if("button" in e && e.button !== 0) return;
+    if("isPrimary" in e && !e.isPrimary) return;
+
+    if(e.cancelable) e.preventDefault();
     e.stopPropagation();
     fn();
   }, {passive:false});
 }
+
 
 /* L/R = hold repeat, rotate = tap, down = tap only (NO slam) */
 bindHoldRepeat(moveLeftBtn, stepLeft, 120, 55);
@@ -1607,7 +1629,6 @@ const QUESTIONS_RAW = [
   { question: "「さえ（さえ）」は英語で？", choices: ["even","also","only","just"], correctIndex: 0 },
 ];
    
-<script>
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
