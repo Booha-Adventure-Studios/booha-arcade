@@ -1,7 +1,7 @@
 <!-- =========================
    BOOHA BLOCKS (CLEAN)
    FULL FILE (CLEANED + FIXED)
-   ✅ Single unified game loop
+   ✅ Single unified game loop (RAF gravity only)
    ✅ ONE leaderboard system (localStorage + NAME prompt)
    ✅ ONE leaderboard overlay (no duplicate IDs)
    ✅ Consistent flags: isGameOver / isPaused / isPausedForQuestion / gameStarted
@@ -42,19 +42,14 @@
   /* RESET */
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{height:100%;width:100%;overflow:hidden;}
-
   html{
     -webkit-text-size-adjust:100%;
     overscroll-behavior:none; /* ✅ kill rubber-band */
-    touch-action:none;         /* ✅ kill pan/zoom (prevents iOS double-tap zoom) */
-    -webkit-user-select:none;  /* ✅ stop Android selection */
-    user-select:none;          /* ✅ stop Android selection */
+    touch-action:none;         /* ✅ kill pan/zoom */
   }
   body{
     overscroll-behavior:none;
-    touch-action:none;         /* ✅ kill pan/zoom */
-    -webkit-user-select:none;  /* ✅ stop Android selection */
-    user-select:none;          /* ✅ stop Android selection */
+    touch-action:none;
   }
 
   body{
@@ -84,15 +79,13 @@
   }
 
   /* iOS/iPad: STOP tap zoom + selection + callouts (but don’t break controls) */
-  body, html, .shell, canvas, #startOverlay, #questionOverlay,
+  body, .shell, canvas, #startOverlay, #questionOverlay,
   #mobileControls, #mobileDownRow,
   .mob-btn, #moveDownBtn, .choiceBtn, .topbar, .topbar *{
     -webkit-user-select:none;
     user-select:none;
     -webkit-touch-callout:none;
     -webkit-tap-highlight-color: transparent;
-    -webkit-user-drag:none;
-    user-drag:none;
   }
 
   /* ✅ Allow buttons to behave nicely (tap, no zoom) */
@@ -269,6 +262,15 @@
     text-shadow:none;
     margin-top:2px;
   }
+  h1 em{
+    display:block;
+    margin-top:3px;
+    font-style:normal;
+    font-size:0.72rem;
+    letter-spacing:0.32em;
+    color:#fcd34d;
+    text-shadow:0 0 8px rgba(252,211,77,.55);
+  }
 
   /* TOP BUTTONS */
   #helpBtn,#trophyBtn,#pauseBtn{
@@ -406,294 +408,389 @@
     filter:brightness(1.05);
   }
 
-
-
-/* ✅ bigger hit area (general) */
-.mob-btn::before{
-  content:"";
-  position:absolute;
-  inset:-14px;
-}
-
-#rotateBtn{
-  background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
-  box-shadow:0 0 18px rgba(232,121,249,0.9);
-}
-
-/* space-bar down */
-#moveDownBtn{
-  width:100%;
-  max-width:260px;
-  height:44px;
-  border-radius:14px;
-  font-size:18px;
-  font-weight:900;
-
-  background:linear-gradient(180deg,#fde68a,#f59e0b);
-  color:#1f2937;
-
-  box-shadow:
-    0 6px 18px rgba(245,158,11,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.6);
-}
-#moveDownBtn:active{
-  transform:translateY(1px);
-  box-shadow:
-    0 3px 10px rgba(245,158,11,0.8),
-    inset 0 2px 4px rgba(0,0,0,0.25);
-}
-
-/* ✅ Mobile arrows: wider pill shape + bigger tap zone */
-#moveLeftBtn,
-#moveRightBtn{
-  width:104px;
-  height:52px;
-  border-radius:999px;
-  font-size:22px;
-}
-#moveLeftBtn::before,
-#moveRightBtn::before{
-  inset:-16px -24px;
-}
-
-/* show controls on touch devices */
-@media (pointer:coarse){
-  #mobileControls,#mobileDownRow{display:flex;}
-  .shell{ padding-bottom:calc(32px + 88px + env(safe-area-inset-bottom,0px)); }
-}
-
-/* PAUSE OVERLAY */
-#pauseOverlay{
-  position:absolute;
-  inset:0;
-  border-radius:24px;
-  background:rgba(0,0,0,0.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:25;
-  font-size:0.95rem;
-  text-shadow:0 0 6px #fff;
-}
-
-/* HELP OVERLAY */
-#helpOverlay{
-  position:absolute;
-  inset:0;
-  border-radius:24px;
-  background:rgba(0,0,15,0.8);
-  backdrop-filter:blur(6px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:30;
-}
-.help-card{
-  width:88%;
-  max-width:380px;
-  padding:18px 20px 16px;
-  border-radius:18px;
-  background:radial-gradient(circle,#111827,#020617 60%);
-  border:1px solid rgba(255,255,255,0.25);
-  position:relative;
-  color:#e5e7eb;
-  font-size:0.8rem;
-  text-align:left;
-}
-.help-title{
-  font-family:'Cinzel';
-  text-align:center;
-  font-size:1.1rem;
-  margin-bottom:8px;
-}
-#helpClose{
-  position:absolute;
-  top:8px;
-  right:8px;
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:linear-gradient(135deg,var(--pink),var(--aqua));
-  border:1px solid var(--gold);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:16px;
-  cursor:pointer;
-  box-shadow:0 0 8px rgba(255,255,255,0.7);
-}
-
-/* QUESTION OVERLAY */
-#questionOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,20,0.82);
-  backdrop-filter:blur(8px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-  padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));
-}
-
-.q-card{
-  width:min(92vw,520px);
-  border-radius:22px;
-  padding:18px 18px 16px;
-  position:relative;
-  overflow:hidden;
-  background:
-    radial-gradient(circle at top, rgba(255,255,255,0.10), transparent 45%),
-    radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--pink) 45%, transparent) 0%, transparent 55%),
-    radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--aqua) 45%, transparent) 0%, transparent 60%),
-    radial-gradient(circle at top,#111827,#020617 65%,#020617 100%);
-  border:1px solid rgba(248,250,252,0.28);
-  box-shadow:
-    0 0 26px color-mix(in srgb, var(--pink) 55%, transparent),
-    0 0 70px color-mix(in srgb, var(--aqua) 45%, transparent);
-  color:#f9fafb;
-  max-height:min(86svh, 680px);
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-/* iOS zoom prevention (correct way) */
-button, input, select, textarea{
-  font-size:16px;
-}
-
-/* ❌ REMOVED: global touch-action:none block */
-/* Gesture locking remains ONLY on #game and mobile controls */
-
-/* ==============================
-   LEADERBOARD OVERLAY (LOCAL)
-   ============================== */
-#leaderboardOverlay{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(0,0,0,.65);
-  backdrop-filter: blur(8px);
-  padding:14px;
-}
-
-#leaderboardCard{
-  width:min(560px,92vw);
-  max-height:80vh;
-  overflow:auto;
-  border-radius:24px;
-  padding:18px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(10,10,16,.92);
-  box-shadow:0 20px 80px rgba(0,0,0,.6);
-  color:#fff;
-}
-
-.lbTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-
-.lbTitle{
-  font-family:"Cinzel", serif;
-  font-weight:900;
-  letter-spacing:.8px;
-  font-size:20px;
-}
-
-.lbClose{
-  font:inherit;
-  font-weight:900;
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.08);
-  color:#fff;
-}
-
-.lbList{
-  display:grid;
-  gap:10px;
-  margin:12px 0 14px;
-}
-
-.lbRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:10px 12px;
-  border-radius:16px;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.12);
-}
-
-.lbLeft{
-  display:flex;
-  align-items:baseline;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.lbRank{
-  font-weight:900;
-  min-width:44px;
-}
-
-.lbMeta{ opacity:.92; }
-.lbDim{ opacity:.75; }
-
-.lbClear{
-  width:100%;
-  font:inherit;
-  font-weight:900;
-  padding:12px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,209,102,.95);
-  color:#000;
-}
-
-
-/* ==============================
-   DESKTOP FIX (Step 1 — board only)
-   ============================== */
-@media (min-width: 900px){
-
-  /* Keep your nice layout — don’t giant-stretch the whole shell */
-  .shell, .gameShell, .outerShell, .wrap, .frame{
-    width: min(900px, 94vw) !important;
-    max-height: 90vh !important;
+  /* ✅ bigger hit area (general) */
+  .mob-btn::before{
+    content:"";
+    position:absolute;
+    inset:-14px;
   }
 
-  /* IMPORTANT: do NOT force canvas height rules that fight DPR scaling */
-  canvas, .gameCanvas, #game, #board{
-    height: auto !important;
+  #rotateBtn{
+    background:radial-gradient(circle at 30% 20%, #fdf2ff, #e879f9 40%, #a855f7 80%);
+    box-shadow:0 0 18px rgba(232,121,249,0.9);
   }
 
-  /* Force the PLAYFIELD/BOARD to a sane desktop size (preserve 10x20 ratio) */
-  #game, #board, canvas#game, canvas#board{
-    width: clamp(340px, 28vw, 520px) !important;
-    height: auto !important;
-    aspect-ratio: 1 / 2 !important; /* ✅ Tetris is 10x20 */
-    display: block !important;
-    margin: 0 auto !important;
-    max-height: calc(90vh - 220px) !important; /* ✅ keep within desktop view */
+  /* space-bar down */
+  #moveDownBtn{
+    width:100%;
+    max-width:260px;
+    height:44px;
+    border-radius:14px;
+    font-size:18px;
+    font-weight:900;
+
+    background:linear-gradient(180deg,#fde68a,#f59e0b);
+    color:#1f2937;
+
+    box-shadow:
+      0 6px 18px rgba(245,158,11,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.6);
   }
-}
+  #moveDownBtn:active{
+    transform:translateY(1px);
+    box-shadow:
+      0 3px 10px rgba(245,158,11,0.8),
+      inset 0 2px 4px rgba(0,0,0,0.25);
+  }
 
-</style>
+  /* ✅ Mobile arrows: wider pill shape + bigger tap zone */
+  #moveLeftBtn,
+  #moveRightBtn{
+    width:104px;
+    height:52px;
+    border-radius:999px;
+    font-size:22px;
+  }
+  #moveLeftBtn::before,
+  #moveRightBtn::before{
+    inset:-16px -24px; /* widen tap zone horizontally */
+  }
 
+  /* show controls on touch devices */
+  @media (pointer:coarse){
+    #mobileControls,#mobileDownRow{display:flex;}
+    .shell{ padding-bottom:calc(32px + 88px + env(safe-area-inset-bottom,0px)); }
+  }
 
+  /* PAUSE OVERLAY */
+  #pauseOverlay{
+    position:absolute;inset:0;border-radius:24px;
+    background:rgba(0,0,0,0.6);
+    display:none;align-items:center;justify-content:center;
+    z-index:25;font-size:0.95rem;text-shadow:0 0 6px #fff;
+  }
+
+  /* HELP OVERLAY */
+  #helpOverlay{
+    position:absolute;inset:0;border-radius:24px;
+    background:rgba(0,0,15,0.8);
+    backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;
+    z-index:30;
+  }
+  .help-card{
+    width:88%;max-width:380px;
+    padding:18px 20px 16px;border-radius:18px;
+    background:radial-gradient(circle,#111827,#020617 60%);
+    border:1px solid rgba(255,255,255,0.25);
+    position:relative;color:#e5e7eb;font-size:0.8rem;
+    text-align:left;
+  }
+  .help-title{
+    font-family:'Cinzel';
+    text-align:center;font-size:1.1rem;margin-bottom:8px;
+  }
+  #helpClose{
+    position:absolute;top:8px;right:8px;width:26px;height:26px;
+    border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--aqua));
+    border:1px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;cursor:pointer;
+    box-shadow:0 0 8px rgba(255,255,255,0.7);
+  }
+
+  /* QUESTION OVERLAY */
+  #questionOverlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,20,0.82);
+    backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;
+    z-index:50;
+
+    padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px));
+  }
+
+  .q-card{
+    width:min(92vw,520px);
+    border-radius:22px;
+    padding:18px 18px 16px;
+    position:relative;
+    overflow:hidden;
+
+    background:
+      radial-gradient(circle at top, rgba(255,255,255,0.10), transparent 45%),
+      radial-gradient(circle at 20% 10%, color-mix(in srgb, var(--pink) 45%, transparent) 0%, transparent 55%),
+      radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--aqua) 45%, transparent) 0%, transparent 60%),
+      radial-gradient(circle at top,#111827,#020617 65%,#020617 100%);
+    border:1px solid rgba(248,250,252,0.28);
+    box-shadow:
+      0 0 26px color-mix(in srgb, var(--pink) 55%, transparent),
+      0 0 70px color-mix(in srgb, var(--aqua) 45%, transparent);
+    color:#f9fafb;
+
+    max-height:min(86svh, 680px);
+    overflow:auto;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .q-title{
+    font-family:'Cinzel',serif;
+    font-weight:900;
+    letter-spacing:.10em;
+    text-align:center;
+    margin-bottom:6px;
+    position:relative;
+    z-index:1;
+    text-shadow:0 0 10px rgba(255,255,255,.35);
+  }
+  .q-sub{
+    text-align:center;
+    font-size:.82rem;
+    opacity:.9;
+    margin-bottom:10px;
+    position:relative;
+    z-index:1;
+  }
+  #questionText{
+    width:100%;
+    font-size:1.05rem;
+    line-height:1.45;
+    margin:6px 0 10px;
+    position:relative;
+    z-index:1;
+    text-shadow:0 0 10px rgba(0,0,0,.35);
+    text-align:center;
+    padding:0 4px;
+  }
+
+  /* QUESTION CHOICES (MOBILE SAFE) */
+  #choiceWrap{
+    width:100%;
+    max-width:560px;
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap:14px;
+    padding:10px 4px 6px;
+    margin:0 auto;
+    position:relative;
+    z-index:1;
+  }
+
+  .choiceBtn{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.08);
+    color:#f9fafb;
+
+    min-height:58px;
+    padding:14px 14px;
+    border-radius:16px;
+
+    font-weight:900;
+    cursor:pointer;
+
+    text-align:center;
+    line-height:1.15;
+    font-size:18px;
+    word-break:break-word;
+
+    -webkit-tap-highlight-color: transparent;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.25);
+    transition:transform .08s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .choiceBtn:active{transform:scale(.98);}
+  .choiceBtn.correct{
+    background:rgba(34,197,94,.22);
+    border-color:rgba(34,197,94,.65);
+    box-shadow:0 0 16px rgba(34,197,94,.35);
+  }
+  .choiceBtn.wrong{
+    background:rgba(239,68,68,.18);
+    border-color:rgba(239,68,68,.55);
+    box-shadow:0 0 16px rgba(239,68,68,.25);
+  }
+
+  @media (max-width: 420px){
+    #choiceWrap{ grid-template-columns: 1fr; gap:12px; }
+    .choiceBtn{ min-height:60px; font-size:18px; }
+  }
+
+  .q-note{
+    width:100%;
+    font-size:.8rem;
+    opacity:.92;
+    margin-top:8px;
+    text-align:center;
+    position:relative;
+    z-index:1;
+  }
+
+  /* START OVERLAY */
+  #startOverlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,10,0.85);
+    display:flex;align-items:center;justify-content:center;
+    z-index:60;text-align:center;
+  }
+  #startOverlayInner{
+    padding:20px 18px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.3);
+    background:radial-gradient(circle,#111827,#020617 60%);
+    box-shadow:0 0 30px rgba(59,130,246,0.8);
+    font-size:0.95rem;
+  }
+  #startOverlayInner .big{
+    display:block;
+    font-size:1.6rem;
+    margin-bottom:6px;
+  }
+
+  /* ✅ iPhone Safari zoom fix */
+  button, input, select, textarea,
+  a, [role="button"], [tabindex],
+  .cell, .block, .answer, .option, .btn,
+  #game, #ui, #popup, #overlay, #hud, #controls {
+    font-size: 16px !important;
+  }
+
+  /* ✅ iOS: stop double-tap/pinch + scroll lock on game UI */
+  html, body, #game, #ui, #controls, canvas{
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ==============================
+     LEADERBOARD OVERLAY (LOCAL) ✅ single source of truth
+     ============================== */
+  #leaderboardOverlay{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.65);
+    backdrop-filter: blur(8px);
+    padding:14px;
+  }
+
+  #leaderboardCard{
+    width:min(560px,92vw);
+    max-height:80vh;
+    overflow:auto;
+    border-radius:24px;
+    padding:18px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(10,10,16,.92);
+    box-shadow:0 20px 80px rgba(0,0,0,.6);
+    color:#fff;
+  }
+
+  .lbTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+
+  .lbTitle{
+    font-family:"Cinzel", serif;
+    font-weight:900;
+    letter-spacing:.8px;
+    font-size:20px;
+  }
+
+  .lbClose{
+    font:inherit;
+    font-weight:900;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.08);
+    color:#fff;
+  }
+
+  .lbList{
+    display:grid;
+    gap:10px;
+    margin:12px 0 14px;
+  }
+
+  .lbRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:16px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+  }
+
+  .lbLeft{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .lbRank{
+    font-weight:900;
+    min-width:44px;
+  }
+
+  .lbMeta{ opacity:.92; }
+  .lbDim{ opacity:.75; }
+
+  .lbClear{
+    width:100%;
+    font:inherit;
+    font-weight:900;
+    padding:12px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,209,102,.95);
+    color:#000;
+  }
+
+  /* ✅ iOS button reset for top bar (prevents weird default rendering, but KEEP styling) */
+  #helpBtn, #trophyBtn, #pauseBtn{
+    -webkit-appearance: none;
+    appearance: none;
+    touch-action: manipulation;
+  }
+
+  /* ==============================
+     DESKTOP FIX (Step 1 — board only)
+     ============================== */
+  @media (min-width: 900px){
+    .shell, .gameShell, .outerShell, .wrap, .frame{
+      width: min(900px, 94vw) !important;
+      height: min(720px, 90vh) !important;
+    }
+
+    canvas, .gameCanvas, #game, #board{
+      height: unset !important;
+    }
+
+    #game, #board, canvas#game, canvas#board{
+      width: clamp(340px, 28vw, 520px) !important;
+      height: calc(clamp(340px, 28vw, 520px) * 2) !important;
+      display: block !important;
+      margin: 0 auto !important;
+    }
+  }
+  </style>
 </head>
+
 
 <body>
 
@@ -725,46 +822,44 @@ button, input, select, textarea{
 <div class="shell">
 
   <!-- ✅ TOP BAR -->
-<div class="topbar">
-  <div class="leftSlot">
-    <button id="helpBtn" type="button" aria-label="Help">？</button>
+  <div class="topbar">
+    <div class="leftSlot">
+      <button id="helpBtn" type="button" aria-label="Help">？</button>
+    </div>
+
+    <div class="titleSlot">
+      <h1>
+        BOOHA BLOCKS
+        <span>ブーハー・ブロックス</span>
+        <em>ONE 5 ZERO</em>
+      </h1>
+    </div>
+
+    <div class="rightSlot">
+      <button id="trophyBtn" type="button" aria-label="Leaderboard">🏆</button>
+      <button id="pauseBtn" type="button" aria-label="Pause">⏸</button>
+    </div>
   </div>
 
-  <div class="titleSlot">
-  <h1>
-    BOOHA BLOCKS
-    <span>ブーハー・ブロックス</span>
-    <em>ONE 5 ZERO</em>
-  </h1>
-</div>
-
-
-  <div class="rightSlot">
-    <button id="trophyBtn" type="button" aria-label="Leaderboard">🏆</button>
-    <button id="pauseBtn" type="button" aria-label="Pause">⏸</button>
+  <div class="hud-row">
+    <div>
+      <span class="label">ライン：</span>
+      <span class="value" id="linesCount">0</span>
+    </div>
+    <div>
+      <span class="label">次のクイズ：</span>
+      <span class="next" id="nextAt">5</span>
+      <span class="label">ライン</span>
+    </div>
   </div>
-</div>
 
-<div class="hud-row">
-  <div>
-    <span class="label">ライン：</span>
-    <span class="value" id="linesCount">0</span>
+  <div class="hud-row">
+    <div>
+      <span class="label">スコア：</span>
+      <span class="value" id="scoreValue">0</span>
+    </div>
+    <div></div>
   </div>
-  <div>
-    <span class="label">次のクイズ：</span>
-    <span class="next" id="nextAt">5</span>
-    <span class="label">ライン</span>
-  </div>
-</div>
-
-<div class="hud-row">
-  <div>
-    <span class="label">スコア：</span>
-    <span class="value" id="scoreValue">0</span>
-  </div>
-  <div></div>
-</div>
-
 
   <canvas id="game" width="320" height="640"></canvas>
 
@@ -822,51 +917,72 @@ button, input, select, textarea{
   </div>
 </div>
 
-
 <script>
-/* ✅ iOS: prevent pinch / gesture zoom (safe version: no tap hijacking) */
+/* ✅ iOS: prevent pinch / double-tap zoom (late-onset Safari zoom lock fix) */
 (function iosNoZoom(){
   const opts = { passive: false };
 
-  document.addEventListener("gesturestart", e => {
-    if(e.cancelable) e.preventDefault();
-  }, opts);
+  document.addEventListener("gesturestart", e => e.preventDefault(), opts);
+  document.addEventListener("gesturechange", e => e.preventDefault(), opts);
+  document.addEventListener("gestureend", e => e.preventDefault(), opts);
 
-  document.addEventListener("gesturechange", e => {
-    if(e.cancelable) e.preventDefault();
-  }, opts);
-
-  document.addEventListener("gestureend", e => {
-    if(e.cancelable) e.preventDefault();
-  }, opts);
-
-  /* Stop only multi-touch moves (pinch). Do NOT block normal single taps. */
   document.addEventListener("touchmove", e => {
-    if (e.touches && e.touches.length > 1){
-      if(e.cancelable) e.preventDefault();
-    }
+    if (e.touches && e.touches.length > 1) e.preventDefault();
+  }, opts);
+
+  let lastTouchEnd = 0;
+  document.addEventListener("touchend", e => {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
   }, opts);
 })();
 
-/* ❌ REMOVED: iosNoZoomOnControls()
-   It was preventingDefault on touchstart/touchend + calling el.click(),
-   which causes iPhone/iPad tap lock + Android weird selection/tap behavior.
-*/
-</script>
+/* ✅ iOS: hard-stop zoom by owning touch on control buttons */
+(function iosNoZoomOnControls(){
+  const opt = { passive:false };
+  const SELECTOR = [
+    "#helpBtn", "#trophyBtn", "#pauseBtn",
+    "#moveLeftBtn", "#moveRightBtn", "#moveDownBtn", "#rotateBtn",
+    ".mob-btn"
+  ].join(",");
 
-<script>
+  function arm(el){
+    el.__synthGuard = 0;
+
+    el.addEventListener("touchstart", (e) => {
+      if(e.cancelable) e.preventDefault();
+    }, opt);
+
+    el.addEventListener("touchend", (e) => {
+      if(e.cancelable) e.preventDefault();
+      el.__synthGuard = Date.now();
+      el.click();
+    }, opt);
+
+    el.addEventListener("click", (e) => {
+      const t = el.__synthGuard || 0;
+      if(t && (Date.now() - t) < 450){
+        el.__synthGuard = 0;
+        return;
+      }
+    }, true);
+  }
+
+  function init(){
+    document.querySelectorAll(SELECTOR).forEach(arm);
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
 /* ==============================
    BOOHA BLOCKS: FULL GAME CORE (CLEAN)
    ============================== */
 
 /* --- Screen flicker helper: call flickerForClearedLines(linesClearedThisDrop) --- */
 (function(){
-  function easeOutQuad(t){ return 1 - (1 - t) * (1 - t); }
-
-  function setRootVar(name, value){
-    document.documentElement.style.setProperty(name, String(value));
-  }
-
   window.flickerForClearedLines = function(n){
     if(!n || n <= 0) return;
     n = Math.min(4, Math.floor(n));
@@ -885,8 +1001,6 @@ button, input, select, textarea{
       function step(ts){
         const elapsed = ts - start;
         const t = Math.min(1, elapsed / singleDur);
-
-        // keep your original decay feel
         const decay = 1 - (1 - (1 - t)) * (1 - (1 - t));
 
         document.documentElement.style.setProperty('--flash', (peak * decay).toFixed(3));
@@ -913,12 +1027,15 @@ button, input, select, textarea{
   };
 })();
 
-
-/* ✅ Removed global document-level zoom/scroll blockers here.
-   Reason: they cause iPhone/iPad "tap lock" + can interfere with clicks.
-   We already handle zoom/gesture prevention safely in Part 3 + CSS touch-action rules.
-*/
-
+/* ✅ Kill scroll bounce + iOS rubber band */
+document.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
+document.addEventListener("gesturestart", e => e.preventDefault());
+let __lastTouchEnd = 0;
+document.addEventListener("touchend", (e)=>{
+  const now = Date.now();
+  if(now - __lastTouchEnd <= 300) e.preventDefault();
+  __lastTouchEnd = now;
+}, {passive:false});
 
 /* canvas */
 const canvas = document.getElementById("game");
@@ -954,13 +1071,7 @@ const helpOverlay  = document.getElementById("helpOverlay");
 function updateHud(){
   linesEl.textContent = linesClearedTotal;
   scoreEl.textContent = score;
-
-  // ✅ guard: currentQuestionIndex may not exist yet when HUD updates early
-  const qIndex = (typeof currentQuestionIndex === "number" && isFinite(currentQuestionIndex))
-    ? currentQuestionIndex
-    : 0;
-
-  nextAtEl.textContent = (qIndex + 1) * 5;
+  nextAtEl.textContent = (currentQuestionIndex + 1) * 5;
 }
 
 /* ==============================
@@ -981,11 +1092,11 @@ const AUDIO_FILES = {
 };
 
 const SFX = {
-  bgm: null,               // current BGM Audio instance
+  bgm: null,
   bgmVol: 0.28,
   bgmIndex: 0,
-  bgmPendingAdvance: false, // track ended while paused/quiz
-  bgmNeedsKick: false       // Safari blocked play; retry on next user gesture/resume
+  bgmPendingAdvance: false,
+  bgmNeedsKick: false
 };
 
 /* ---------- BGM builder + rotation ---------- */
@@ -997,12 +1108,10 @@ function buildBGM(trackIndex){
   a.volume = SFX.bgmVol;
 
   a.onended = () => {
-    // If we are not in active play, queue the next track (don’t switch now)
     if(!audioUnlocked || !gameStarted || isGameOver || isPaused || isPausedForQuestion){
       SFX.bgmPendingAdvance = true;
       return;
     }
-    // Active play: advance immediately
     advanceBGMAndPlay();
   };
 
@@ -1016,7 +1125,6 @@ function advanceBGMIndex(){
 function advanceBGMAndPlay(){
   advanceBGMIndex();
   SFX.bgm = buildBGM(SFX.bgmIndex);
-  // try to start; if Safari blocks, mark for kick
   safePlay(SFX.bgm, { restart:false, isBGM:true });
 }
 
@@ -1045,7 +1153,6 @@ async function unlockAudioOnce(){
   preloadAllAudio();
   ensureBGM();
 
-  // Prime BGM silently (best effort)
   const prevVol = SFX.bgm.volume;
   try{
     SFX.bgm.volume = 0.0001;
@@ -1064,14 +1171,12 @@ function safePlay(audio, opts={}){
   const restart = opts.restart !== false;
   const isBGM = !!opts.isBGM;
 
-  // BGM safety: rebuild if missing or ended
   if(isBGM || audio === SFX.bgm){
     ensureBGM();
     audio = SFX.bgm;
 
     try{
       if(audio && audio.ended){
-        // If ended, rebuild same index (resume will advance if needed)
         SFX.bgm = buildBGM(SFX.bgmIndex);
         audio = SFX.bgm;
       }
@@ -1085,7 +1190,6 @@ function safePlay(audio, opts={}){
     const p = audio.play();
     if(p && typeof p.catch === "function"){
       p.catch(()=> {
-        // iOS sometimes blocks late track starts; mark for retry
         if(isBGM || audio === SFX.bgm) SFX.bgmNeedsKick = true;
       });
     }
@@ -1097,7 +1201,6 @@ function safePlay(audio, opts={}){
 function playSFX(url, vol=1){
   if(!audioUnlocked) return;
   try{
-    // fresh instance per play (iOS-safe)
     const a = new Audio(url);
     a.preload = "auto";
     a.volume = vol;
@@ -1120,7 +1223,6 @@ function resumeBGM(){
   if(!gameStarted) return;
   if(isPaused || isPausedForQuestion) return;
 
-  // If a track ended during pause/quiz, advance now
   if(SFX.bgmPendingAdvance){
     SFX.bgmPendingAdvance = false;
     advanceBGMIndex();
@@ -1129,17 +1231,13 @@ function resumeBGM(){
     ensureBGM();
   }
 
-  // If Safari blocked a previous start, try again now (user gesture often just happened)
   if(SFX.bgmNeedsKick){
     SFX.bgmNeedsKick = false;
-    // rebuild fresh to avoid stuck instances
     SFX.bgm = buildBGM(SFX.bgmIndex);
   }
 
-  // Start without restart for smoothness
   safePlay(SFX.bgm, { restart:false, isBGM:true });
 }
-
 
 /* ==============================
    LEVEL THEMES
@@ -1168,7 +1266,6 @@ function applyLevelThemeAndMaybeSound(){
   document.documentElement.style.setProperty("--pink", t.p);
   document.documentElement.style.setProperty("--aqua", t.s);
 }
-
 
 /* ==============================
    REACTIVE GLOW
@@ -1216,7 +1313,6 @@ const tetrominos = {
   Z:[[1,1,0],[0,1,1],[0,0,0]],
   T:[[0,1,0],[1,1,1],[0,0,0]]
 };
-
 const colors = {
   I:"#7dd3fc", O:"#facc15", T:"#e879f9",
   S:"#4ade80", Z:"#fb7185", J:"#a855f7", L:"#f97316"
@@ -1262,9 +1358,7 @@ function valid(matrix,row,col){
 }
 
 /* rotate */
-function rotate(m){
-  return m[0].map((_,i)=>m.map(r=>r[i]).reverse());
-}
+function rotate(m){ return m[0].map((_,i)=>m.map(r=>r[i]).reverse()); }
 
 /* scoring */
 function scoreLines(lines){
@@ -1283,11 +1377,405 @@ let isClearingLines = false;
 let clearingRows = [];
 let clearTicks = 0;
 
-/* (unchanged drawing + particle code preserved exactly as provided) */
+const CLEAR_PALETTES = [
+  ["#ff7eb9","#7dd3fc","#ffd166","#a7f3d0"],
+  ["#e879f9","#a855f7","#7dd3fc","#facc15"],
+  ["#34d399","#22c55e","#60a5fa","#fb7185"],
+  ["#f97316","#f59e0b","#fde047","#93c5fd"],
+  ["#fb7185","#f472b6","#7dd3fc","#c084fc"],
+  ["#06b6d4","#67e8f9","#facc15","#fb7185"],
+];
+function pickPalette(){ return CLEAR_PALETTES[(Math.random()*CLEAR_PALETTES.length)|0]; }
+let activeClearPalette = pickPalette();
+
+const particles = [];
+function spawnClearParticles(rows){
+  activeClearPalette = pickPalette();
+  rows.forEach(r=>{
+    for(let i=0;i<44;i++){
+      const x = (Math.random()*10) * grid + (Math.random()*8);
+      const y = r * grid + (Math.random()*grid);
+      const c1 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
+      const c2 = activeClearPalette[(Math.random()*activeClearPalette.length)|0];
+      particles.push({
+        kind: (Math.random()<0.78 ? "dot" : "spark"),
+        x, y,
+        vx: (Math.random()-0.5) * 2.4,
+        vy: - (0.9 + Math.random()*2.8),
+        life: 1.0,
+        decay: 0.030 + Math.random()*0.03,
+        size: 1.6 + Math.random()*3.4,
+        rot: Math.random()*Math.PI*2,
+        spin: (Math.random()-0.5)*0.35,
+        c1, c2
+      });
+    }
+  });
+}
+
+function drawSparkShape(x,y,sz,rot){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.moveTo(0, -sz);
+  ctx.lineTo(sz*0.35, -sz*0.35);
+  ctx.lineTo(sz, 0);
+  ctx.lineTo(sz*0.35, sz*0.35);
+  ctx.lineTo(0, sz);
+  ctx.lineTo(-sz*0.35, sz*0.35);
+  ctx.lineTo(-sz, 0);
+  ctx.lineTo(-sz*0.35, -sz*0.35);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawParticles(){
+  if(!particles.length) return;
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05;
+    p.rot += p.spin;
+    p.life -= p.decay;
+
+    if(p.life <= 0){
+      particles.splice(i,1);
+      continue;
+    }
+
+    const a = Math.max(0, Math.min(1, p.life));
+    ctx.save();
+    ctx.globalAlpha = 0.78 * a;
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = p.c1;
+
+    if(p.kind === "spark"){
+      ctx.fillStyle = p.c1;
+      drawSparkShape(p.x, p.y, p.size*1.15, p.rot);
+
+      ctx.globalAlpha = 0.32 * a;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = p.c2;
+      ctx.fillStyle = p.c2;
+      drawSparkShape(p.x+0.8, p.y-0.8, p.size*0.72, -p.rot*0.9);
+    }else{
+      ctx.fillStyle = p.c1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.28 * a;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = p.c2;
+      ctx.fillStyle = p.c2;
+      ctx.beginPath();
+      ctx.arc(p.x+0.7, p.y-0.7, p.size*0.55, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function shimmerRowOverlay(r, t){
+  const y = r * grid;
+  const phase = (t % 1);
+  const sweepX = (-grid*2) + phase * (canvas.width + grid*4);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+
+  const cA = activeClearPalette[0] || "rgba(255,255,255,1)";
+  const cB = activeClearPalette[1] || "rgba(255,255,255,1)";
+
+  ctx.globalAlpha = 0.44;
+  const g = ctx.createLinearGradient(sweepX, y, sweepX + grid*5, y);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.35, cA);
+  g.addColorStop(0.65, cB);
+  g.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, y, canvas.width, grid);
+
+  ctx.globalAlpha = 0.22 + 0.18*Math.sin((Date.now()/60) + r);
+  for(let i=0;i<10;i++){
+    const x = (i*38 + (Date.now()/5)%38) % canvas.width;
+    ctx.fillStyle = activeClearPalette[i % activeClearPalette.length];
+    ctx.fillRect(x, y + 4 + (i%4), 2, 2);
+  }
+
+  ctx.restore();
+}
 
 /* ==============================
-   DESKTOP KEYS
+   LEADERBOARD (LOCAL STORAGE) + NAME
    ============================== */
+const LB_KEY = "booha_blocks_lb_v2";
+const LB_NAME_KEY = "booha_blocks_name_v1";
+
+const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+const leaderClose = document.getElementById("leaderClose");
+const leaderList = document.getElementById("leaderList");
+const lbClearBtn = document.getElementById("lbClearBtn");
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  }[m]));
+}
+
+function getPlayerName(){
+  let n = (localStorage.getItem(LB_NAME_KEY) || "").trim();
+  if(n) return n;
+
+  n = (prompt("名前を入力してください / Enter your name", "") || "").trim();
+  n = n.slice(0, 16);
+  if(!n) n = "Player";
+  localStorage.setItem(LB_NAME_KEY, n);
+  return n;
+}
+
+function getLocalBoard(){
+  try{
+    const raw = localStorage.getItem(LB_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+
+function setLocalBoard(arr){
+  try{ localStorage.setItem(LB_KEY, JSON.stringify(arr)); }catch(e){}
+}
+
+function saveLocalScore(){
+  const name = getPlayerName();
+  const entry = {
+    name,
+    score: Number(score || 0),
+    lines: Number(linesClearedTotal || 0),
+    level: Number(currentLevel || 1),
+    at: Date.now()
+  };
+
+  const board = getLocalBoard();
+  board.push(entry);
+
+  board.sort((a,b)=>
+    (b.score - a.score) ||
+    (b.lines - a.lines) ||
+    (b.level - a.level) ||
+    (b.at - a.at)
+  );
+
+  setLocalBoard(board.slice(0, 20));
+}
+
+function renderLocalLeaderboard(){
+  if(!leaderList) return;
+
+  const board = getLocalBoard();
+
+  if(board.length === 0){
+    leaderList.innerHTML = `<div style="opacity:.8;">No scores yet.</div>`;
+    return;
+  }
+
+  const fmt = (t)=>{
+    const d = new Date(t);
+    return `${d.getMonth()+1}/${d.getDate()}`;
+  };
+
+  leaderList.innerHTML = board.map((e,i)=>`
+    <div class="lbRow">
+      <div class="lbLeft">
+        <div class="lbRank">#${i+1}</div>
+        <div class="lbMeta"><b>${escapeHTML(e.name || "Player")}</b></div>
+        <div class="lbDim">Score ${e.score}</div>
+        <div class="lbDim">Lines ${e.lines}</div>
+        <div class="lbDim">Lv ${e.level}</div>
+      </div>
+      <div class="lbDim">${fmt(e.at)}</div>
+    </div>
+  `).join("");
+}
+
+function openLeaderboard(){
+  if(!leaderboardOverlay) return;
+  isPaused = true;
+  pauseBGM();
+  renderLocalLeaderboard();
+  leaderboardOverlay.style.display = "flex";
+}
+
+function closeLeaderboard(){
+  if(!leaderboardOverlay) return;
+  leaderboardOverlay.style.display = "none";
+  isPaused = false;
+  resumeLoop();
+}
+
+if(leaderClose) leaderClose.onclick = closeLeaderboard;
+if(leaderboardOverlay){
+  leaderboardOverlay.addEventListener("click",(e)=>{
+    if(e.target === leaderboardOverlay) closeLeaderboard();
+  });
+}
+if(lbClearBtn){
+  lbClearBtn.onclick = ()=>{
+    try{ localStorage.removeItem(LB_KEY); }catch(e){}
+    renderLocalLeaderboard();
+  };
+}
+
+/* ==============================
+   GAME OVER (single path)
+   ============================== */
+function endGame(){
+  if(isGameOver) return;
+  isGameOver = true;
+
+  if(rafId) cancelAnimationFrame(rafId);
+  pauseBGM();
+
+  saveLocalScore();
+
+  startOverlay.style.display = "flex";
+  startInner.innerHTML = `
+    <span class="big">GAME OVER</span>
+    スコア：${score}<br>
+    ライン：${linesClearedTotal}<br><br>
+    画面をタップしてリスタート
+  `;
+}
+
+/* ==============================
+   LOCK / CLEAR / DRAW / LOOP
+   ============================== */
+function lockPiece(){
+  for(let r=0;r<piece.matrix.length;r++){
+    for(let c=0;c<piece.matrix[r].length;c++){
+      if(piece.matrix[r][c]){
+        if(piece.row+r < 0){
+          endGame();
+          return;
+        }
+        playfield[piece.row+r][piece.col+c] = piece.name;
+      }
+    }
+  }
+
+  const fullRows = [];
+  for(let r=0;r<20;r++){
+    if(playfield[r].every(Boolean)) fullRows.push(r);
+  }
+
+  if(fullRows.length){
+    isClearingLines = true;
+    clearingRows = fullRows.slice();
+    clearTicks = 12;
+
+    playSFX(AUDIO_FILES.lineClear, 0.78);
+    bumpGlow(fullRows.length);
+    spawnClearParticles(fullRows);
+    return;
+  }
+
+  piece = nextPiece();
+  updateHud();
+}
+
+function commitLineClear(){
+  const rowsToClear = clearingRows.slice().sort((a,b)=>b-a);
+  const cleared = rowsToClear.length;
+
+  rowsToClear.forEach(r=>{ playfield.splice(r, 1); });
+  for(let i=0;i<cleared;i++){ playfield.unshift(Array(10).fill(0)); }
+
+  if(cleared){
+    linesClearedTotal += cleared;
+    scoreLines(cleared);
+    updateGravity();
+    applyLevelThemeAndMaybeSound();
+
+    requestAnimationFrame(()=>{ setTimeout(()=>{ maybeTriggerQuestion(); }, 180); });
+  }
+
+  isClearingLines = false;
+  clearingRows = [];
+  piece = nextPiece();
+  updateHud();
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for(let r=0;r<20;r++){
+    for(let c=0;c<10;c++){
+      const cell = playfield[r][c];
+      ctx.fillStyle = cell ? colors[cell] : "#020617";
+      ctx.fillRect(c*grid,r*grid,grid-1,grid-1);
+    }
+  }
+
+  if(isClearingLines && clearingRows.length){
+    const t = (12 - clearTicks) / 12;
+    clearingRows.forEach(r=>{
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = 0.16 + 0.22*Math.sin((Date.now()/70) + r);
+      ctx.fillStyle = "rgba(255,255,255,1)";
+      ctx.fillRect(0, r*grid, canvas.width, grid);
+      ctx.restore();
+      shimmerRowOverlay(r, t);
+    });
+  }
+
+  ctx.fillStyle = colors[piece.name];
+  piece.matrix.forEach((row,r)=>{
+    row.forEach((v,c)=>{
+      if(v){
+        ctx.fillRect((piece.col+c)*grid,(piece.row+r)*grid,grid-1,grid-1);
+      }
+    });
+  });
+
+  drawParticles();
+}
+
+function loop(){
+  if(isGameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+
+  tickGlow();
+
+  if(isClearingLines){
+    clearTicks--;
+    draw();
+    if(clearTicks <= 0) commitLineClear();
+    rafId = requestAnimationFrame(loop);
+    return;
+  }
+
+  frameCounter++;
+  if(frameCounter >= gravityFrames){
+    frameCounter = 0;
+    if(valid(piece.matrix, piece.row+1, piece.col)) piece.row++;
+    else lockPiece();
+  }
+
+  draw();
+  rafId = requestAnimationFrame(loop);
+}
+
+function resumeLoop(){
+  if(isGameOver || isPaused || isPausedForQuestion || !gameStarted) return;
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+  resumeBGM();
+}
+
+/* desktop keys */
 document.addEventListener("keydown", (e)=>{
   if(!gameStarted || isGameOver || isPaused || isPausedForQuestion || isClearingLines) return;
 
@@ -1298,7 +1786,7 @@ document.addEventListener("keydown", (e)=>{
     if(valid(r, piece.row, piece.col)) piece.matrix = r;
   }
   if(e.key==="ArrowDown"){
-    if(valid(piece.matrix, piece.row+1, piece.col)) piece.row++;
+    if(valid(piece.matrix, piece.row+1, piece.col)) piece.row++; /* one-step */
     else lockPiece();
   }
 });
@@ -1313,20 +1801,8 @@ const rotateBtn    = document.getElementById("rotateBtn");
 const moveDownBtn  = document.getElementById("moveDownBtn");
 
 function canInput(){
-
   return gameStarted && !isGameOver && !isPaused && !isPausedForQuestion && !isClearingLines;
 }
-
-// ✅ Safety: kill any stuck hold-repeat if focus or pointer is lost
-window.addEventListener("blur", ()=>{
-  try{ document.dispatchEvent(new Event("boohaStopHolds")); }catch(_){}
-});
-
-// ✅ Pointer-up anywhere = stop holds (prevents stuck movement)
-window.addEventListener("pointerup", ()=>{
-  try{ document.dispatchEvent(new Event("boohaStopHolds")); }catch(_){}
-}, { passive:true });
-   
 function stepLeft(){ if(canInput() && valid(piece.matrix,piece.row,piece.col-1)) piece.col--; }
 function stepRight(){ if(canInput() && valid(piece.matrix,piece.row,piece.col+1)) piece.col++; }
 function stepRotate(){
@@ -1342,27 +1818,19 @@ function downStepOne(){
 
 function bindHoldRepeat(btn, stepFn, DAS=120, ARR=55){
   if(!btn) return;
-
   let holdTimer = null;
   let repeatTimer = null;
   let active = false;
 
   const stop = ()=>{
-    if(!active) return;
     active = false;
     if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; }
     if(repeatTimer){ clearInterval(repeatTimer); repeatTimer=null; }
   };
 
   const start = (e)=>{
-    if(e){
-      // only left/primary touch/pen
-      if("button" in e && e.button !== 0) return;
-      if("isPrimary" in e && !e.isPrimary) return;
-
-      if(e.cancelable) e.preventDefault();
-      e.stopPropagation();
-    }
+    e.preventDefault();
+    e.stopPropagation();
     if(active) return;
     active = true;
 
@@ -1377,29 +1845,21 @@ function bindHoldRepeat(btn, stepFn, DAS=120, ARR=55){
     start(e);
   }, {passive:false});
 
-  // stop when the button loses the pointer or the pointer ends
   btn.addEventListener("pointerup", stop, {passive:true});
   btn.addEventListener("pointercancel", stop, {passive:true});
-  btn.addEventListener("lostpointercapture", stop, {passive:true});
   btn.addEventListener("pointerleave", stop, {passive:true});
-
-  // ✅ Global kill signal (you already pasted the dispatcher)
-  document.addEventListener("boohaStopHolds", stop, { passive:true });
+  btn.addEventListener("touchend", stop, {passive:true});
+  btn.addEventListener("touchcancel", stop, {passive:true});
 }
 
 function bindTap(btn, fn){
   if(!btn) return;
-
   btn.addEventListener("pointerdown",(e)=>{
-    if("button" in e && e.button !== 0) return;
-    if("isPrimary" in e && !e.isPrimary) return;
-
-    if(e.cancelable) e.preventDefault();
+    e.preventDefault();
     e.stopPropagation();
     fn();
   }, {passive:false});
 }
-
 
 /* L/R = hold repeat, rotate = tap, down = tap only (NO slam) */
 bindHoldRepeat(moveLeftBtn, stepLeft, 120, 55);
@@ -1409,434 +1869,217 @@ bindTap(moveDownBtn, downStepOne);
 
 
 /* ==============================
-   GRAVITY TIMER (desktop-safe)
-   ✅ uses downStepOne (no missing stepDown)
-   ============================== */
-let gravityTimer = null;
-const DROP_MS = 650;
-
-function startGravity(){
-  stopGravity();
-  gravityTimer = setInterval(()=>{
-    // gravity should respect all pause states
-    if(!gameStarted || isGameOver || isPaused || isPausedForQuestion) return;
-    if(isClearingLines) return;
-    downStepOne();
-  }, DROP_MS);
-}
-
-function stopGravity(){
-  if(gravityTimer){
-    clearInterval(gravityTimer);
-    gravityTimer = null;
-  }
-}
-
-   
-
-/* ==============================
    QUESTION GATE — CLEAN + 150 CORE WORDS
-   ✅ De-junked distractors (no “this day / next day / last day”)
-   ✅ Japanese + ひらがな in ( )
-   ✅ 150 “useful” core words (Booha Core)
-   ✅ correctIndex always 0
    ============================== */
 
 const QUESTIONS_RAW = [
-  // --- Pronouns / People ---
-  { question: "「私（わたし）」は英語で？", choices: ["I","me","my","you"], correctIndex: 0 },
-  { question: "「あなた（あなた）」は英語で？", choices: ["you","your","I","we"], correctIndex: 0 },
-  { question: "「彼（かれ）」は英語で？", choices: ["he","him","his","she"], correctIndex: 0 },
-  { question: "「彼女（かのじょ）」は英語で？", choices: ["she","her","hers","he"], correctIndex: 0 },
-  { question: "「私たち（わたしたち）」は英語で？", choices: ["we","us","our","they"], correctIndex: 0 },
-  { question: "「彼ら／彼女ら（かれら／かのじょら）」は英語で？", choices: ["they","them","their","we"], correctIndex: 0 },
-  { question: "「それ（それ）」は英語で？", choices: ["it","this","that","he"], correctIndex: 0 },
+  { question: "「私（わたし）」は英語で？", choices:["I","me","my","you"], correctIndex:0 },
+  { question: "「あなた（あなた）」は英語で？", choices:["you","your","I","we"], correctIndex:0 },
+  { question: "「彼（かれ）」は英語で？", choices:["he","him","his","she"], correctIndex:0 },
+  { question: "「彼女（かのじょ）」は英語で？", choices:["she","her","hers","he"], correctIndex:0 },
+  { question: "「私たち（わたしたち）」は英語で？", choices:["we","us","our","they"], correctIndex:0 },
+  { question: "「彼ら（かれら）」は英語で？", choices:["they","them","their","we"], correctIndex:0 },
+  { question: "「それ」は英語で？", choices:["it","this","that","he"], correctIndex:0 },
 
-  // --- Core verbs ---
-  { question: "「〜の／〜をする（もっている）」は英語で？", choices: ["have","get","make","take"], correctIndex: 0 },
-  { question: "「〜である」は英語で？", choices: ["be","do","go","get"], correctIndex: 0 },
-  { question: "「〜する」は英語で？", choices: ["do","make","try","work"], correctIndex: 0 },
-  { question: "「〜作る（つくる）」は英語で？", choices: ["make","do","build","cook"], correctIndex: 0 },
-  { question: "「〜言う（いう）」は英語で？", choices: ["say","tell","speak","talk"], correctIndex: 0 },
-  { question: "「〜へ行く（いく）」は英語で？", choices: ["go","come","walk","move"], correctIndex: 0 },
-  { question: "「〜来る（くる）」は英語で？", choices: ["come","go","arrive","visit"], correctIndex: 0 },
-  { question: "「〜得る（える）／手に入れる（てにいれる）」は英語で？", choices: ["get","give","take","keep"], correctIndex: 0 },
-  { question: "「〜与える（あたえる）」は英語で？", choices: ["give","get","take","send"], correctIndex: 0 },
-  { question: "「〜取る（とる）」は英語で？", choices: ["take","get","give","bring"], correctIndex: 0 },
-  { question: "「〜置く（おく）」は英語で？", choices: ["put","push","pull","take"], correctIndex: 0 },
+  { question: "「〜持っている」は英語で？", choices:["have","get","make","take"], correctIndex:0 },
+  { question: "「〜する」は英語で？", choices:["do","make","try","work"], correctIndex:0 },
+  { question: "「〜作る」は英語で？", choices:["make","do","build","cook"], correctIndex:0 },
+  { question: "「〜言う」は英語で？", choices:["say","tell","speak","talk"], correctIndex:0 },
+  { question: "「〜行く」は英語で？", choices:["go","come","walk","move"], correctIndex:0 },
+  { question: "「〜来る」は英語で？", choices:["come","go","arrive","visit"], correctIndex:0 },
+  { question: "「〜得る」は英語で？", choices:["get","give","take","keep"], correctIndex:0 },
+  { question: "「〜与える」は英語で？", choices:["give","get","take","send"], correctIndex:0 },
 
-  // --- See / Hear / Learn ---
-  { question: "「〜見る（みる）」は英語で？", choices: ["see","look","watch","view"], correctIndex: 0 },
-  { question: "「〜見る（ながめる）」は英語で？", choices: ["look","see","watch","find"], correctIndex: 0 },
-  { question: "「〜見る（えいぞうをみる）」は英語で？", choices: ["watch","see","look","hear"], correctIndex: 0 },
-  { question: "「〜聞く（きく）」は英語で？", choices: ["hear","listen","look","watch"], correctIndex: 0 },
-  { question: "「〜聞く（きいてみる）」は英語で？", choices: ["listen","hear","speak","read"], correctIndex: 0 },
-  { question: "「〜知っている（しっている）」は英語で？", choices: ["know","think","learn","remember"], correctIndex: 0 },
-  { question: "「〜思う（おもう）」は英語で？", choices: ["think","know","want","need"], correctIndex: 0 },
-  { question: "「〜欲しい（ほしい）」は英語で？", choices: ["want","need","like","get"], correctIndex: 0 },
-  { question: "「〜必要（ひつよう）だ」は英語で？", choices: ["need","want","use","help"], correctIndex: 0 },
-  { question: "「〜好き（すき）だ」は英語で？", choices: ["like","love","want","need"], correctIndex: 0 },
-  { question: "「〜愛する（あいする）」は英語で？", choices: ["love","like","want","miss"], correctIndex: 0 },
+  { question: "「見る」は英語で？", choices:["see","look","watch","view"], correctIndex:0 },
+  { question: "「聞く」は英語で？", choices:["hear","listen","look","watch"], correctIndex:0 },
+  { question: "「考える」は英語で？", choices:["think","know","want","need"], correctIndex:0 },
+  { question: "「欲しい」は英語で？", choices:["want","need","like","get"], correctIndex:0 },
+  { question: "「必要」は英語で？", choices:["need","want","use","help"], correctIndex:0 },
 
-  // --- Connectors / Logic ---
-  { question: "「そして（そして）」は英語で？", choices: ["and","but","so","or"], correctIndex: 0 },
-  { question: "「でも（しかし）」は英語で？", choices: ["but","and","or","so"], correctIndex: 0 },
-  { question: "「または（または）」は英語で？", choices: ["or","and","but","so"], correctIndex: 0 },
-  { question: "「だから（だから）」は英語で？", choices: ["so","because","but","or"], correctIndex: 0 },
-  { question: "「なぜなら（なぜなら）」は英語で？", choices: ["because","so","but","or"], correctIndex: 0 },
-  { question: "「もし〜なら（もし〜なら）」は英語で？", choices: ["if","because","when","that"], correctIndex: 0 },
-  { question: "「〜の時（とき）」は英語で？", choices: ["when","if","then","while"], correctIndex: 0 },
-  { question: "「〜している間（あいだ）」は英語で？", choices: ["while","when","before","after"], correctIndex: 0 },
-  { question: "「〜よりも（ひかく）」は英語で？", choices: ["than","then","that","when"], correctIndex: 0 },
+  { question: "「そして」は英語で？", choices:["and","but","so","or"], correctIndex:0 },
+  { question: "「でも」は英語で？", choices:["but","and","or","so"], correctIndex:0 },
+  { question: "「だから」は英語で？", choices:["so","because","but","or"], correctIndex:0 },
 
-  // --- This / That / Place ---
-  { question: "「この（この）」は英語で？", choices: ["this","that","these","those"], correctIndex: 0 },
-  { question: "「その／あれ（その／あれ）」は英語で？", choices: ["that","this","those","these"], correctIndex: 0 },
-  { question: "「これら（これら）」は英語で？", choices: ["these","those","this","that"], correctIndex: 0 },
-  { question: "「あれら（あれら）」は英語で？", choices: ["those","these","that","this"], correctIndex: 0 },
-  { question: "「ここ（ここ）」は英語で？", choices: ["here","there","where","near"], correctIndex: 0 },
-  { question: "「そこ／あそこ（そこ／あそこ）」は英語で？", choices: ["there","here","where","far"], correctIndex: 0 },
+  { question: "「ここ」は英語で？", choices:["here","there","where","near"], correctIndex:0 },
+  { question: "「そこ」は英語で？", choices:["there","here","where","far"], correctIndex:0 },
 
-  // --- Question words ---
-  { question: "「どこ（どこ）」は英語で？", choices: ["where","what","when","why"], correctIndex: 0 },
-  { question: "「いつ（いつ）」は英語で？", choices: ["when","where","who","why"], correctIndex: 0 },
-  { question: "「何（なに）」は英語で？", choices: ["what","who","when","where"], correctIndex: 0 },
-  { question: "「だれ（だれ）」は英語で？", choices: ["who","what","when","where"], correctIndex: 0 },
-  { question: "「どうして（どうして）」は英語で？", choices: ["why","what","where","when"], correctIndex: 0 },
-  { question: "「どうやって（どうやって）」は英語で？", choices: ["how","why","what","who"], correctIndex: 0 },
+  { question: "「どこ」は英語で？", choices:["where","what","when","why"], correctIndex:0 },
+  { question: "「いつ」は英語で？", choices:["when","where","who","why"], correctIndex:0 },
+  { question: "「何」は英語で？", choices:["what","who","when","where"], correctIndex:0 },
+  { question: "「だれ」は英語で？", choices:["who","what","when","where"], correctIndex:0 },
+  { question: "「どうして」は英語で？", choices:["why","what","where","when"], correctIndex:0 },
 
-  // --- Degree ---
-  { question: "「とても（とても）」は英語で？", choices: ["very","really","too","so"], correctIndex: 0 },
-  { question: "「本当に（ほんとうに）」は英語で？", choices: ["really","very","surely","truly"], correctIndex: 0 },
-  { question: "「〜すぎる（〜すぎる）」は英語で？", choices: ["too","very","so","much"], correctIndex: 0 },
+  { question: "「とても」は英語で？", choices:["very","really","too","so"], correctIndex:0 },
+  { question: "「〜できる」は英語で？", choices:["can","may","must","should"], correctIndex:0 },
 
-  // --- Prepositions ---
-  { question: "「〜へ（ほうこう）」は英語で？", choices: ["to","for","with","from"], correctIndex: 0 },
-  { question: "「〜から（〜から）」は英語で？", choices: ["from","to","for","by"], correctIndex: 0 },
-  { question: "「〜と一緒に（いっしょに）」は英語で？", choices: ["with","for","by","from"], correctIndex: 0 },
-  { question: "「〜のために（ために）」は英語で？", choices: ["for","to","with","from"], correctIndex: 0 },
-  { question: "「〜について（〜について）」は英語で？", choices: ["about","around","over","after"], correctIndex: 0 },
-  { question: "「〜の中に（なかに）」は英語で？", choices: ["in","on","at","into"], correctIndex: 0 },
-  { question: "「〜の上に（うえに）」は英語で？", choices: ["on","in","at","over"], correctIndex: 0 },
-  { question: "「〜で（ばしょ）／〜に（ばしょ）」は英語で？", choices: ["at","in","on","to"], correctIndex: 0 },
-  { question: "「〜へ（なかへ）」は英語で？", choices: ["into","in","to","on"], correctIndex: 0 },
-  { question: "「〜の前に（まえに）」は英語で？", choices: ["before","after","while","when"], correctIndex: 0 },
-  { question: "「〜の後で（あとで）」は英語で？", choices: ["after","before","then","while"], correctIndex: 0 },
-  { question: "「〜の上（うえ）に／〜を超えて（こえて）」は英語で？", choices: ["over","under","above","around"], correctIndex: 0 },
-  { question: "「〜の下（した）に」は英語で？", choices: ["under","over","below","around"], correctIndex: 0 },
+  { question: "「今」は英語で？", choices:["now","today","soon","then"], correctIndex:0 },
+  { question: "「今日」は英語で？", choices:["today","tomorrow","yesterday","tonight"], correctIndex:0 },
+  { question: "「明日」は英語で？", choices:["tomorrow","today","yesterday","now"], correctIndex:0 },
+  { question: "「昨日」は英語で？", choices:["yesterday","today","tomorrow","now"], correctIndex:0 },
 
-  // --- Modals / Ability ---
-  { question: "「〜できる（できる）」は英語で？", choices: ["can","may","must","should"], correctIndex: 0 },
-  { question: "「〜するつもり（よてい）」は英語で？", choices: ["will","can","must","should"], correctIndex: 0 },
-  { question: "「〜しなければならない」は英語で？", choices: ["must","can","may","should"], correctIndex: 0 },
-  { question: "「〜したほうがいい」は英語で？", choices: ["should","must","can","may"], correctIndex: 0 },
+  { question: "「良い」は英語で？", choices:["good","bad","great","fine"], correctIndex:0 },
+  { question: "「悪い」は英語で？", choices:["bad","good","sad","wrong"], correctIndex:0 },
 
-  // --- Frequency / Time ---
-  { question: "「いつも（いつも）」は英語で？", choices: ["always","often","usually","sometimes"], correctIndex: 0 },
-  { question: "「よく（ひんど）」は英語で？", choices: ["often","usually","always","sometimes"], correctIndex: 0 },
-  { question: "「たいてい（たいてい）」は英語で？", choices: ["usually","often","always","sometimes"], correctIndex: 0 },
-  { question: "「ときどき（ときどき）」は英語で？", choices: ["sometimes","often","usually","always"], correctIndex: 0 },
-  { question: "「決して〜ない（けっして〜ない）」は英語で？", choices: ["never","sometimes","often","always"], correctIndex: 0 },
-
-  { question: "「今（いま）」は英語で？", choices: ["now","today","soon","then"], correctIndex: 0 },
-  { question: "「今日（きょう）」は英語で？", choices: ["today","tomorrow","yesterday","tonight"], correctIndex: 0 },
-  { question: "「今夜（こんや）」は英語で？", choices: ["tonight","today","tomorrow","yesterday"], correctIndex: 0 },
-  { question: "「明日（あした）」は英語で？", choices: ["tomorrow","today","yesterday","tonight"], correctIndex: 0 },
-  { question: "「昨日（きのう）」は英語で？", choices: ["yesterday","today","tomorrow","now"], correctIndex: 0 },
-
-  // --- Articles ---
-  { question: "「冠詞（かんし）『a』は英語で？」", choices: ["a","an","the","to"], correctIndex: 0 },
-  { question: "「冠詞（かんし）『the』は英語で？」", choices: ["the","a","an","this"], correctIndex: 0 },
-
-  // --- Possessives / Objects / Possessive pronouns ---
-  { question: "「『私の（わたしの）』は英語で？」", choices: ["my","me","mine","your"], correctIndex: 0 },
-  { question: "「『あなたの』は英語で？」", choices: ["your","you","yours","our"], correctIndex: 0 },
-  { question: "「『彼の（かれの）』は英語で？」", choices: ["his","him","he","her"], correctIndex: 0 },
-  { question: "「『彼女の（かのじょの）』は英語で？」", choices: ["her","hers","she","his"], correctIndex: 0 },
-  { question: "「『私たちの（わたしたちの）』は英語で？」", choices: ["our","us","we","their"], correctIndex: 0 },
-  { question: "「『彼らの（かれらの）』は英語で？」", choices: ["their","them","they","our"], correctIndex: 0 },
-
-  { question: "「『私を（わたしを）』は英語で？」", choices: ["me","my","I","mine"], correctIndex: 0 },
-  { question: "「『彼を（かれを）』は英語で？」", choices: ["him","his","he","them"], correctIndex: 0 },
-  { question: "「『彼女を（かのじょを）』は英語で？」", choices: ["her","hers","she","him"], correctIndex: 0 },
-  { question: "「『私たちを（わたしたちを）』は英語で？」", choices: ["us","our","we","them"], correctIndex: 0 },
-  { question: "「『彼ら／彼女らを』は英語で？」", choices: ["them","their","they","us"], correctIndex: 0 },
-
-  { question: "「『私のもの（わたしのもの）』は英語で？」", choices: ["mine","my","me","yours"], correctIndex: 0 },
-  { question: "「『あなたのもの』は英語で？」", choices: ["yours","your","you","mine"], correctIndex: 0 },
-  { question: "「『彼女のもの（かのじょのもの）』は英語で？」", choices: ["hers","her","she","his"], correctIndex: 0 },
-  { question: "「『私たちのもの』は英語で？」", choices: ["ours","our","us","theirs"], correctIndex: 0 },
-  { question: "「『彼らのもの』は英語で？」", choices: ["theirs","their","them","ours"], correctIndex: 0 },
-
-  // --- Simple answers / Negation ---
-  { question: "「否定（ひてい）『〜ない』は英語で？」", choices: ["not","no","never","none"], correctIndex: 0 },
-  { question: "「『いいえ』は英語で？」", choices: ["no","not","none","never"], correctIndex: 0 },
-  { question: "「『はい』は英語で？」", choices: ["yes","yeah","ok","sure"], correctIndex: 0 },
-
-  // --- Numbers (useful, minimal) ---
-  { question: "「一つ（ひとつ）」は英語で？", choices: ["one","two","three","four"], correctIndex: 0 },
-  { question: "「二つ（ふたつ）」は英語で？", choices: ["two","one","three","five"], correctIndex: 0 },
-  { question: "「三つ（みっつ）」は英語で？", choices: ["three","two","four","five"], correctIndex: 0 },
-
-  // --- Adjectives (high utility) ---
-  { question: "「良い（よい）」は英語で？", choices: ["good","bad","great","fine"], correctIndex: 0 },
-  { question: "「悪い（わるい）」は英語で？", choices: ["bad","good","sad","wrong"], correctIndex: 0 },
-  { question: "「大きい（おおきい）」は英語で？", choices: ["big","small","tall","large"], correctIndex: 0 },
-  { question: "「小さい（ちいさい）」は英語で？", choices: ["small","big","little","short"], correctIndex: 0 },
-  { question: "「新しい（あたらしい）」は英語で？", choices: ["new","old","young","next"], correctIndex: 0 },
-  { question: "「古い（ふるい）」は英語で？", choices: ["old","new","last","past"], correctIndex: 0 },
-
-  { question: "「うれしい（うれしい）」は英語で？", choices: ["happy","sad","angry","tired"], correctIndex: 0 },
-  { question: "「かなしい（かなしい）」は英語で？", choices: ["sad","happy","glad","funny"], correctIndex: 0 },
-  { question: "「暑い（あつい）」は英語で？", choices: ["hot","cold","warm","cool"], correctIndex: 0 },
-  { question: "「寒い（さむい）」は英語で？", choices: ["cold","hot","cool","warm"], correctIndex: 0 },
-
-  // --- Core nouns (kid-safe, high-frequency) ---
-  { question: "「時間（じかん）」は英語で？", choices: ["time","day","year","hour"], correctIndex: 0 },
-  { question: "「日（ひ）」は英語で？", choices: ["day","time","week","today"], correctIndex: 0 },
-  { question: "「週（しゅう）」は英語で？", choices: ["week","day","month","year"], correctIndex: 0 },
-  { question: "「年（とし）」は英語で？", choices: ["year","month","week","time"], correctIndex: 0 },
-  { question: "「人々（ひとびと）」は英語で？", choices: ["people","person","friends","family"], correctIndex: 0 },
-  { question: "「友だち（ともだち）」は英語で？", choices: ["friend","family","teacher","people"], correctIndex: 0 },
-  { question: "「家族（かぞく）」は英語で？", choices: ["family","friends","parents","people"], correctIndex: 0 },
-  { question: "「家（いえ）」は英語で？", choices: ["home","house","school","room"], correctIndex: 0 },
-  { question: "「学校（がっこう）」は英語で？", choices: ["school","home","class","room"], correctIndex: 0 },
-  { question: "「食べ物（たべもの）」は英語で？", choices: ["food","fruit","meal","drink"], correctIndex: 0 },
-  { question: "「水（みず）」は英語で？", choices: ["water","milk","juice","tea"], correctIndex: 0 },
-
-  // --- Everyday verbs (kid-useful) ---
-  { question: "「〜食べる（たべる）」は英語で？", choices: ["eat","drink","cook","taste"], correctIndex: 0 },
-  { question: "「〜飲む（のむ）」は英語で？", choices: ["drink","eat","sip","taste"], correctIndex: 0 },
-  { question: "「〜遊ぶ（あそぶ）」は英語で？", choices: ["play","work","try","help"], correctIndex: 0 },
-  { question: "「〜読む（よむ）」は英語で？", choices: ["read","write","look","learn"], correctIndex: 0 },
-  { question: "「〜書く（かく）」は英語で？", choices: ["write","read","draw","make"], correctIndex: 0 },
-  { question: "「〜学ぶ（まなぶ）」は英語で？", choices: ["learn","study","know","teach"], correctIndex: 0 },
-  { question: "「〜勉強する（べんきょうする）」は英語で？", choices: ["study","learn","try","work"], correctIndex: 0 },
-
-  // --- Polite core ---
-  { question: "「お願い（おねがい）／お願いします」は英語で？", choices: ["please","sorry","thanks","hello"], correctIndex: 0 },
-  { question: "「ありがとう（ありがとう）」は英語で？", choices: ["thanks","please","sorry","hello"], correctIndex: 0 },
-  { question: "「ごめん（ごめん）」は英語で？", choices: ["sorry","thanks","please","excuse"], correctIndex: 0 },
-
-  // --- “English logic” glue (high value) ---
-  { question: "「〜もう一度（もういちど）」は英語で？", choices: ["again","still","already","soon"], correctIndex: 0 },
-  { question: "「まだ（まだ）」は英語で？", choices: ["still","already","again","yet"], correctIndex: 0 },
-  { question: "「もう（すでに）」は英語で？", choices: ["already","still","again","soon"], correctIndex: 0 },
-  { question: "「それから（それから）」は英語で？", choices: ["then","so","and","after"], correctIndex: 0 },
-  { question: "「また（追加）（また）」は英語で？", choices: ["also","only","even","just"], correctIndex: 0 },
-  { question: "「ただ（ただ）」は英語で？", choices: ["just","only","also","even"], correctIndex: 0 },
-  { question: "「だけ（だけ）」は英語で？", choices: ["only","just","also","even"], correctIndex: 0 },
-  { question: "「さえ（さえ）」は英語で？", choices: ["even","also","only","just"], correctIndex: 0 },
+  { question: "「友だち」は英語で？", choices:["friend","family","teacher","people"], correctIndex:0 },
+  { question: "「家族」は英語で？", choices:["family","friends","parents","people"], correctIndex:0 },
+  { question: "「学校」は英語で？", choices:["school","home","class","room"], correctIndex:0 },
 ];
-   
+
+/* shuffle helper */
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
   }
   return arr;
 }
 
-let QUESTIONS = [];
+let QUESTIONS=[];
 function buildQuestions(){
   QUESTIONS = shuffle(QUESTIONS_RAW.slice());
-  if(!QUESTIONS.length) QUESTIONS = QUESTIONS_RAW.slice();
 }
 buildQuestions();
 
-const qOverlay = document.getElementById("questionOverlay");
-const qText = document.getElementById("questionText");
-const choiceWrap = document.getElementById("choiceWrap");
+const qOverlay=document.getElementById("questionOverlay");
+const qText=document.getElementById("questionText");
+const choiceWrap=document.getElementById("choiceWrap");
 
-let currentQuestionIndex = 0;
-let firstTry = true;
-let questionOpen = false;
+let currentQuestionIndex=0;
+let firstTry=true;
+let questionOpen=false;
 
 function maybeTriggerQuestion(){
-  if(isClearingLines) return;
-  const threshold = (currentQuestionIndex + 1) * 5;
-  if(linesClearedTotal >= threshold) showQuestion();
+  const threshold=(currentQuestionIndex+1)*5;
+  if(linesClearedTotal>=threshold) showQuestion();
 }
 
 function showQuestion(){
-  if(questionOpen || isGameOver) return;
-  questionOpen = true;
-
-  isPausedForQuestion = true;
-  firstTry = true;
+  if(questionOpen||isGameOver) return;
+  questionOpen=true;
+  isPausedForQuestion=true;
+  firstTry=true;
 
   pauseBGM();
-  playSFX(AUDIO_FILES.quizOpen, 0.95);
+  playSFX(AUDIO_FILES.quizOpen,0.9);
 
-  if(currentQuestionIndex % QUESTIONS.length === 0) buildQuestions();
-  const q = QUESTIONS[currentQuestionIndex % QUESTIONS.length];
+  if(currentQuestionIndex%QUESTIONS.length===0) buildQuestions();
+  const q=QUESTIONS[currentQuestionIndex%QUESTIONS.length];
 
-  qText.textContent = q.question;
-  choiceWrap.innerHTML = "";
+  qText.textContent=q.question;
+  choiceWrap.innerHTML="";
 
-  const choiceObjs = q.choices.map((txt, originalIndex)=>({ txt, originalIndex }));
-  shuffle(choiceObjs);
-
-  choiceObjs.forEach((c)=>{
-    const b = document.createElement("button");
-    b.className = "choiceBtn";
-    b.type = "button";
-    b.textContent = c.txt;
-
-    b.addEventListener("click", ()=>{
-      if(c.originalIndex === q.correctIndex){
+  const choices=shuffle(q.choices.map((t,i)=>({t,i})));
+  choices.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="choiceBtn";
+    b.textContent=c.t;
+    b.onclick=()=>{
+      if(c.i===q.correctIndex){
         b.classList.add("correct");
-        playSFX(AUDIO_FILES.quizCorrect, 0.95);
-
-        if(firstTry){
-          score += 100;
-          updateGravity();
-          updateHud();
-        }
-
+        playSFX(AUDIO_FILES.quizCorrect,0.9);
+        if(firstTry) score+=100;
         setTimeout(()=>{
-          qOverlay.style.display = "none";
-          isPausedForQuestion = false;
+          qOverlay.style.display="none";
+          isPausedForQuestion=false;
           currentQuestionIndex++;
           updateHud();
-
-          questionOpen = false;
+          questionOpen=false;
           resumeLoop();
-        }, 420);
-
-      } else {
+        },420);
+      }else{
         b.classList.add("wrong");
-        firstTry = false;
-        setTimeout(()=>b.classList.remove("wrong"), 260);
+        firstTry=false;
+        setTimeout(()=>b.classList.remove("wrong"),260);
       }
-    });
-
+    };
     choiceWrap.appendChild(b);
   });
 
-  qOverlay.style.display = "flex";
+  qOverlay.style.display="flex";
 }
 
 /* ==============================
    PAUSE / HELP / TROPHY
    ============================== */
-const pauseBtn = document.getElementById("pauseBtn");
-const helpBtn = document.getElementById("helpBtn");
-const helpClose = document.getElementById("helpClose");
-const trophyBtn = document.getElementById("trophyBtn");
-
-pauseBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
-  isPaused = true;
-  stopGravity();
+pauseBtn.onclick=()=>{
+  if(!gameStarted||isGameOver) return;
+  isPaused=true;
   pauseBGM();
-  pauseOverlay.style.display = "flex";
+  pauseOverlay.style.display="flex";
 };
 
-pauseOverlay.onclick = ()=>{
+pauseOverlay.onclick=()=>{
   isPaused=false;
   pauseOverlay.style.display="none";
-  startGravity();
   resumeLoop();
 };
 
-helpBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
-  isPaused = true;
-  stopGravity();
+helpBtn.onclick=()=>{
+  if(!gameStarted||isGameOver) return;
+  isPaused=true;
   pauseBGM();
-  pauseOverlay.style.display = "none";
-  helpOverlay.style.display = "flex";
+  helpOverlay.style.display="flex";
 };
 
-helpClose.onclick = ()=>{
-  helpOverlay.style.display = "none";
-  isPaused = false;
-  startGravity();
+helpClose.onclick=()=>{
+  helpOverlay.style.display="none";
+  isPaused=false;
   resumeLoop();
 };
 
-if(trophyBtn){
-  trophyBtn.onclick = ()=>{
-    if(!gameStarted) return;
-    openLeaderboard();
-  };
-}
+trophyBtn.onclick=()=>{
+  if(gameStarted) openLeaderboard();
+};
 
 /* ==============================
-   START / RESTART
+   START / RESET
    ============================== */
 function hardReset(){
-  isGameOver = false;
-  isPaused = false;
-  isPausedForQuestion = false;
-  gameStarted = false;
+  isGameOver=false;
+  isPaused=false;
+  isPausedForQuestion=false;
+  gameStarted=false;
 
-  score = 0;
-  linesClearedTotal = 0;
-  currentQuestionIndex = 0;
+  score=0;
+  linesClearedTotal=0;
+  currentQuestionIndex=0;
+  frameCounter=0;
+  gravityFrames=40;
+  currentLevel=1;
 
-  frameCounter = 0;
-  gravityFrames = 40;
-  currentLevel = 1;
-
-  isClearingLines = false;
-  clearingRows = [];
-  clearTicks = 0;
-
-  stopGravity();
-
-  // clear field
-  for(let r=-2;r<20;r++){
-    playfield[r] = Array(10).fill(0);
-  }
-
-  piece = nextPiece();
-  updateGravity();
+  for(let r=-2;r<20;r++) playfield[r]=Array(10).fill(0);
+  piece=nextPiece();
   updateHud();
-
-  const t = LEVEL_THEMES[0];
-  document.documentElement.style.setProperty("--pink", t.p);
-  document.documentElement.style.setProperty("--aqua", t.s);
-
-  pulse = pulse2 = flash = screenGlow = 0;
-  tickGlow();
   draw();
 }
 
 async function startGame(){
-  if(gameStarted && !isGameOver) return;
-
+  if(gameStarted&&!isGameOver) return;
   await unlockAudioOnce();
-
   hardReset();
+  gameStarted=true;
 
-  gameStarted = true;
-  startInner.innerHTML = `<span class="big">3</span>`;
-
-  let count = 3;
-  const timer = setInterval(()=>{
-    count--;
-    if(count > 0){
-      startInner.innerHTML = `<span class="big">${count}</span>`;
-    }else{
-      clearInterval(timer);
-      startInner.innerHTML = `<span class="big">GO!</span>`;
-
+  let c=3;
+  startInner.innerHTML=`<span class="big">${c}</span>`;
+  const t=setInterval(()=>{
+    c--;
+    if(c>0) startInner.innerHTML=`<span class="big">${c}</span>`;
+    else{
+      clearInterval(t);
+      startInner.innerHTML=`<span class="big">GO!</span>`;
       setTimeout(()=>{
-        startOverlay.style.display = "none";
-        startGravity();
+        startOverlay.style.display="none";
         resumeLoop();
-      }, 350);
+      },350);
     }
-  }, 650);
+  },650);
 }
 
-/* ✅ Single start handler (prevents touch+click double fire on iOS/Android) */
-startOverlay.addEventListener("pointerdown", (e)=>{
-  if(e && e.cancelable) e.preventDefault();
+startOverlay.addEventListener("click",startGame);
+startOverlay.addEventListener("touchstart",e=>{
+  e.preventDefault();
   startGame();
-}, {passive:false});
+},{passive:false});
 
 /* ==============================
    INIT
@@ -1844,7 +2087,5 @@ startOverlay.addEventListener("pointerdown", (e)=>{
 updateGravity();
 updateHud();
 draw();
-</script>
-
-</body>
-</html>
+   
+   
