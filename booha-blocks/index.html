@@ -2244,96 +2244,127 @@ if(lbClearBtn){
   };
 }
 
+
+
 /* ==============================
-   PAUSE / HELP / TROPHY
+   PAUSE / HELP / TROPHY (FIXED)
+   - iOS-safe pointer events (no click reliance)
+   - No accidental double handlers
+   - Clean overlay behavior (stopPropagation)
    ============================== */
-const pauseBtn = document.getElementById("pauseBtn");
-const pauseOverlay = document.getElementById("pauseOverlay");
 
-pauseBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
-  isPaused = !isPaused;
-  pauseOverlay.style.display = isPaused ? "flex" : "none";
-  if(isPaused) pauseBGM();
-  if(!isPaused) resumeLoop();
-};
-pauseOverlay.onclick = ()=>{
-  isPaused=false;
-  pauseOverlay.style.display="none";
-  resumeLoop();
-};
+const pauseBtn      = document.getElementById("pauseBtn");
+const pauseOverlay  = document.getElementById("pauseOverlay");
 
-const helpBtn = document.getElementById("helpBtn");
-const helpOverlay = document.getElementById("helpOverlay");
-const helpClose = document.getElementById("helpClose");
+const helpBtn       = document.getElementById("helpBtn");
+const helpOverlay   = document.getElementById("helpOverlay");
+const helpClose     = document.getElementById("helpClose");
 
-helpBtn.onclick = ()=>{
-  if(!gameStarted || isGameOver) return;
-  isPaused = true;
-  pauseBGM();
-  pauseOverlay.style.display = "none";
-  helpOverlay.style.display = "flex";
-};
-helpClose.onclick = ()=>{
-  helpOverlay.style.display = "none";
-  isPaused = false;
-  resumeLoop();
-};
+const trophyBtn     = document.getElementById("trophyBtn");
 
-const trophyBtn = document.getElementById("trophyBtn");
-if(trophyBtn){
-  trophyBtn.onclick = ()=>{
-    if(!gameStarted) return;
-    openLeaderboard();
-  };
+/* ------------------------------
+   PAUSE
+--------------------------------*/
+function setPaused(next){
+  isPaused = !!next;
+  if(pauseOverlay) pauseOverlay.style.display = isPaused ? "flex" : "none";
+
+  if(isPaused){
+    pauseBGM?.();
+  }else{
+    resumeLoop?.();
+  }
 }
+
+if(pauseBtn){
+  pauseBtn.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(!gameStarted || isGameOver) return;
+    setPaused(!isPaused);
+  }, { passive:false });
+}
+
+if(pauseOverlay){
+  pauseOverlay.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(isGameOver) return;
+    setPaused(false);
+  }, { passive:false });
+}
+
+/* ------------------------------
+   HELP
+--------------------------------*/
+function openHelp(){
+  if(!gameStarted || isGameOver) return;
+
+  isPaused = true;
+  pauseBGM?.();
+
+  if(pauseOverlay) pauseOverlay.style.display = "none";
+  if(helpOverlay) helpOverlay.style.display = "flex";
+}
+
+function closeHelp(){
+  if(helpOverlay) helpOverlay.style.display = "none";
+  isPaused = false;
+  resumeLoop?.();
+}
+
+if(helpBtn){
+  helpBtn.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openHelp();
+  }, { passive:false });
+}
+
+if(helpClose){
+  helpClose.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    closeHelp();
+  }, { passive:false });
+}
+
+if(helpOverlay){
+  // Tap anywhere on the dim background to close (optional but nice)
+  helpOverlay.addEventListener("pointerdown", (e)=>{
+    // only close if they tapped the overlay background itself
+    if(e.target !== helpOverlay) return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeHelp();
+  }, { passive:false });
+}
+
+/* ------------------------------
+   TROPHY
+--------------------------------*/
+if(trophyBtn){
+  trophyBtn.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    if(!gameStarted) return;
+    openLeaderboard?.();
+  }, { passive:false });
+}
+
 
 /* ==============================
    GAME OVER + START OVERLAY (FIXED)
-   - No duplicate start triggers
-   - Overlay tap runs startGame() only
-   - iPad zoom-fix stays, but does NOT call resumeLoop directly
-   - No <script> tags inside JS
+   - Removes illegal nested <script>
+   - triggerGameOver now closes properly
+   - ONE start handler (pointerdown)
+   - Countdown (3-2-1-GO) -> startGame()
    ============================== */
 
-/* ==============================
-   GAME OVER
-   ============================== */
-function triggerGameOver(){
-  if(isGameOver) return;
-  isGameOver = true;
-
-  pauseBGM();
-
-  // ✅ save score w/ name prompt
-  saveLocalScore();
-
-  // ✅ show leaderboard immediately
-  openLeaderboard();
-
-  // ✅ show overlay to restart
-  startOverlay.style.display = "flex";
-  startInner.innerHTML = `<span class="big">GAME OVER</span>タップしてリスタート`;
-
-  // ✅ allow restart
-  gameStarted = false;
-
-
-<script>
-/* ============================================================
-   START OVERLAY + GAME START (CLEAN)
-   - ONE start handler (pointerdown, iOS-safe)
-   - Countdown (3-2-1-GO) then startGame()
-   - No duplicate handlers, no nested <script>
-   ============================================================ */
-
-/* ==============================
-   START OVERLAY (single-source)
-   ============================== */
 const startOverlay = document.getElementById("startOverlay");
 const startInner   = document.getElementById("startOverlayInner");
 
-/* ✅ ONE tap-to-start handler (iOS-safe: don't rely on click) */
+/* ✅ ONE tap-to-start handler (iOS-safe) */
 if(startOverlay){
   startOverlay.addEventListener("pointerdown", (e)=>{
     e.preventDefault();
@@ -2342,9 +2373,34 @@ if(startOverlay){
   }, { passive:false });
 }
 
-/* ==============================
+/* ------------------------------
+   GAME OVER
+--------------------------------*/
+function triggerGameOver(){
+  if(isGameOver) return;
+  isGameOver = true;
+
+  pauseBGM?.();
+
+  // ✅ save score w/ name prompt (your existing function)
+  saveLocalScore?.();
+
+  // ✅ show leaderboard immediately (your existing function)
+  openLeaderboard?.();
+
+  // ✅ show overlay to restart
+  if(startOverlay) startOverlay.style.display = "flex";
+  if(startInner){
+    startInner.innerHTML = `<span class="big">GAME OVER</span><br>タップしてリスタート`;
+  }
+
+  // ✅ allow restart
+  gameStarted = false;
+}
+
+/* ------------------------------
    RESET
-   ============================== */
+--------------------------------*/
 function hardReset(){
   // reset flags
   isGameOver = false;
@@ -2373,36 +2429,38 @@ function hardReset(){
   // new piece
   piece = nextPiece();
 
-  updateGravity();
-  updateHud();
+  updateGravity?.();
+  updateHud?.();
 }
 
-/* ==============================
+/* ------------------------------
    START GAME
-   ============================== */
+--------------------------------*/
 async function startGame(){
   if(gameStarted) return;
 
-  await unlockAudioOnce();
+  await unlockAudioOnce?.();
   hardReset();
 
   gameStarted = true;
 
-  currentLevel = calcLevel();
+  currentLevel = calcLevel?.() ?? currentLevel;
   const t = LEVEL_THEMES[(currentLevel - 1) % LEVEL_THEMES.length];
-  document.documentElement.style.setProperty("--pink", t.p);
-  document.documentElement.style.setProperty("--aqua", t.s);
+  if(t){
+    document.documentElement.style.setProperty("--pink", t.p);
+    document.documentElement.style.setProperty("--aqua", t.s);
+  }
 
-  tickGlow();
-  updateHud();
+  tickGlow?.();
+  updateHud?.();
 
-  // If your loop needs a kick, start it here ONLY if required by your codebase:
-  // resumeLoop();
+  // If your loop needs a kick, do it here ONLY if your loop doesn’t auto-run:
+  // resumeLoop?.();
 }
 
-/* ==============================
+/* ------------------------------
    Start-from-overlay countdown
-   ============================== */
+--------------------------------*/
 function startFromOverlay(){
   if(gameStarted) return;
 
@@ -2425,20 +2483,32 @@ function startFromOverlay(){
   }, 700);
 }
 
-/* helper */
+/* Optional: allow other scripts to trigger start via event */
 window.booha = window.booha || {};
 window.booha.startFromOverlay = startFromOverlay;
-
-/* Optional: allow other scripts to trigger start via event */
 window.addEventListener("booha:start", startFromOverlay);
 
 /* ==============================
-   INIT
+   INIT (SAFE FINAL)
    ============================== */
-updateGravity();
-updateHud();
+
+// Ensure gravity + HUD are initialized once on load
+updateGravity?.();
+updateHud?.();
+
+/* ==============================
+   OPTIONAL GLOBAL HOOKS
+   ============================== */
+
+// Allow console / external triggers
+window.booha = window.booha || {};
+window.booha.startFromOverlay = startFromOverlay;
+window.booha.triggerGameOver  = triggerGameOver;
+
+/* ==============================
+   END OF GAME SCRIPT
+   ============================== */
 </script>
 
 </body>
 </html>
-   
