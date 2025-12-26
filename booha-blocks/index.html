@@ -874,6 +874,30 @@ body, .shell, canvas, #startOverlay, #questionOverlay,
     pointer-events: auto !important;
   }
   #startOverlayInner{ pointer-events: none !important; }
+/* ✅ FIX: start overlay must receive the tap */
+#startOverlay{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+#startOverlayInner{ pointer-events: none !important; }
+
+/* ✅ iPad Safari: kill smart zoom */
+html, body{
+  touch-action: manipulation;
+}
+
+.shell, #startOverlay, #questionOverlay, #helpOverlay, #pauseOverlay,
+#mobileControls, #mobileDownRow,
+.mob-btn, #pauseBtn, #helpBtn, #trophyBtn{
+  touch-action: manipulation;
+}
+
+/* canvas must not trigger browser gestures */
+#game, canvas{
+  touch-action: none;
+}
 </style>
 </head>
 <body>
