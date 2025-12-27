@@ -1180,16 +1180,10 @@ html, body, .shell{
     return false;
   }
 
-  function inBoohaUI(el){
-    if(!el || !el.closest) return false;
-    return !!el.closest(
-      "#game, .shell, .topbar," +
-      "#mobileControls, #mobileDownRow," +
-      "#startOverlay, #pauseOverlay," +
-      "#helpOverlay, #leaderboardOverlay," +
-      "#questionOverlay"
-    );
-  }
+ function inBoohaUI(el){
+  return true;
+}
+
 
  // iOS Safari gesture event (pinch) — block inside Booha UI only
 document.addEventListener("gesturestart", (e)=>{
