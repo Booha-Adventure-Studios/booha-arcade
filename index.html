@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Booha Arcade</title>
+  <title>Booha Blocks</title>
 
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 
@@ -28,10 +28,43 @@
         radial-gradient(circle at top, #1f2937 0%, var(--bg1) 55%, var(--bg2) 100%);
       font-family:'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color:#f9fafb;
+      padding:22px 16px 26px;
     }
 
-    .wrap{
+    .shell{
       width:min(92vw,420px);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      min-height:calc(100vh - 48px);
+    }
+
+    .top{
+      text-align:center;
+      margin-top:4px;
+    }
+
+    .title{
+      font-family:'Cinzel',serif;
+      font-weight:900;
+      letter-spacing:.18em;
+      font-size:1.25rem;
+      text-shadow:
+        0 0 8px rgba(248,250,252,0.9),
+        0 0 16px rgba(251,113,133,0.8);
+    }
+
+    .subtitle{
+      margin-top:6px;
+      font-size:.82rem;
+      letter-spacing:.22em;
+      color:#a5b4fc;
+    }
+
+    .card{
+      width:100%;
       padding:26px 22px 28px;
       border-radius:24px;
       background:radial-gradient(circle at top,rgba(148,163,255,0.25),rgba(15,23,42,0.98));
@@ -41,9 +74,10 @@
         0 0 24px rgba(59,130,246,0.55),
         0 0 60px rgba(15,23,42,0.9);
       position:relative;
+      overflow:hidden;
     }
 
-    .wrap::before{
+    .card::before{
       content:"";
       position:absolute;
       inset:-2px;
@@ -56,124 +90,152 @@
       z-index:-1;
     }
 
-    h1{
-      font-family:'Cinzel',serif;
-      font-weight:900;
-      letter-spacing:.18em;
-      font-size:1.2rem;
-      margin-bottom:6px;
-      text-shadow:
-        0 0 8px rgba(248,250,252,0.9),
-        0 0 16px rgba(251,113,133,0.8);
-    }
-
-    .sub{
-      font-size:.8rem;
-      letter-spacing:.22em;
-      color:#a5b4fc;
-      margin-bottom:18px;
-    }
-
-    .game-list{
-      display:grid;
-      gap:14px;
-      margin-top:10px;
-    }
-
+    /* Button */
     .game-link{
       display:block;
       text-decoration:none;
       color:#111827;
       font-weight:900;
-      padding:16px 14px;
+      padding:18px 14px;
       border-radius:18px;
       background:linear-gradient(135deg,var(--pink),var(--aqua));
       border:1px solid var(--gold);
       box-shadow:
-        0 0 14px rgba(255,255,255,0.65),
+        0 0 16px rgba(255,255,255,0.72),
+        0 0 24px rgba(255,209,102,0.28),
         0 10px 26px rgba(0,0,0,0.35);
-      transition:transform .08s ease, box-shadow .12s ease;
+      transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
+      position:relative;
+      overflow:hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .game-link span{
       display:block;
-      font-size:.75rem;
-      font-weight:700;
-      opacity:.85;
-      margin-top:4px;
-    }
-
-    .game-link:active{
-      transform:scale(.97);
-      box-shadow:
-        0 0 10px rgba(255,255,255,0.6),
-        0 6px 18px rgba(0,0,0,0.35);
-    }
-
-    .footer{
-      margin-top:20px;
-      font-size:.7rem;
-      line-height:1.65;
-      opacity:.78;
-    }
-
-    .footer .line{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      margin-top:10px;
+      font-size:.78rem;
+      font-weight:800;
       opacity:.9;
-    }
-
-    .footer .pip{
-      width:6px;
-      height:6px;
-      border-radius:50%;
-      background:rgba(255,255,255,0.55);
-      box-shadow:0 0 10px rgba(255,255,255,0.35);
-    }
-
-    .footer .tag{
-      display:inline-block;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,209,102,0.45);
-      background:rgba(2,6,23,0.35);
-      box-shadow:0 0 12px rgba(255,255,255,0.12);
+      margin-top:6px;
       letter-spacing:.12em;
-      font-family:'Cinzel',serif;
-      font-weight:900;
-      font-size:.66rem;
+    }
+
+    /* idle glow shimmer */
+    .game-link::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:radial-gradient(circle, rgba(255,255,255,0.35), transparent 55%);
+      filter:blur(10px);
+      opacity:.55;
+      transform:translate3d(-30%, -10%, 0);
+      animation:floatGlow 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+
+    @keyframes floatGlow{
+      0%   { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
+      50%  { transform:translate3d(14%,6%,0)  scale(1.12); opacity:.75; }
+      100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
+    }
+
+    /* click/touch pulse (1s) */
+    .game-link.pulse{
+      transform:scale(.985);
+      filter:saturate(1.2) brightness(1.06);
+      box-shadow:
+        0 0 22px rgba(255,255,255,0.92),
+        0 0 34px rgba(255,209,102,0.55),
+        0 0 46px rgba(125,211,252,0.45),
+        0 12px 30px rgba(0,0,0,0.38);
+    }
+
+    .game-link.pulse::after{
+      animation:none;
+      opacity:.9;
+      transform:translate3d(8%,4%,0) scale(1.25);
+    }
+
+    .bottom{
+      width:100%;
+      text-align:center;
+      font-size:.78rem;
+      opacity:.8;
+      padding-bottom:4px;
+      letter-spacing:.08em;
     }
   </style>
 </head>
+
 <body>
+  <div class="shell">
 
-  <div class="wrap">
-    <h1>BOOHA ARCADE</h1>
-    <div class="sub">ブーハー・ブロックス専用アーケード</div>
+    <!-- TOP (not in button) -->
+    <div class="top">
+      <div class="title">BOOHA BLOCKS</div>
+      <div class="subtitle">ブーハー・ブロックス</div>
+    </div>
 
-    <div class="game-list">
-      <!-- Booha Blocks — One 5 Zero -->
-      <a class="game-link" href="./booha-blocks-one5zero/">
-        BOOHA BLOCKS · ONE 5 ZERO
-        <span>150語で生き残れ</span>
+    <!-- CENTER CARD -->
+    <div class="card">
+      <a class="game-link" id="one5zeroBtn" href="./booha-blocks-one5zero/">
+        ONE 5 ZERO
+        <span>ワン・ファイブ・ゼロ</span>
       </a>
     </div>
 
-    <div class="footer">
-      今年、さらに多くのBooha Blocksが登場予定。<br>
-      More Booha Blocks games are coming this year.
-
-      <div class="line">
-        <span class="pip"></span>
-        <span class="tag">BOOHA ADVENTURE</span>
-        <span class="pip"></span>
-      </div>
-    </div>
+    <!-- BOTTOM (not in button) -->
+    <div class="bottom">Bryan's English School.</div>
   </div>
 
+  <!-- SFX -->
+  <audio id="indexSfx" preload="auto" src="index.mp3"></audio>
 
+  <script>
+    (function(){
+      const btn = document.getElementById("one5zeroBtn");
+      const sfxEl = document.getElementById("indexSfx");
+
+      if(!btn) return;
+
+      function playIndexSfx(){
+        // Safari-safe: don't rely on reusing <audio> for voice, but SFX is usually ok.
+        // Still, we guard and also allow fallback new Audio if needed.
+        try{
+          if(sfxEl){
+            sfxEl.currentTime = 0;
+            const p = sfxEl.play();
+            if(p && typeof p.catch === "function"){ p.catch(()=>{}); }
+          }else{
+            const a = new Audio("index.mp3");
+            a.play().catch(()=>{});
+          }
+        }catch(e){}
+      }
+
+      function handleGo(e){
+        // let our 1s effect happen, then navigate
+        e.preventDefault();
+
+        // visual pulse for ~1s
+        btn.classList.add("pulse");
+        playIndexSfx();
+
+        const href = btn.getAttribute("href");
+
+        setTimeout(()=>{
+          window.location.href = href;
+        }, 980);
+      }
+
+      // Use pointerdown so iOS feels instant
+      btn.addEventListener("pointerdown", handleGo, { passive:false });
+      // keyboard accessibility
+      btn.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" || e.key === " "){
+          handleGo(e);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
