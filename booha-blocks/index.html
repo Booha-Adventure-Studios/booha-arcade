@@ -2382,6 +2382,18 @@ function maybeTriggerQuestion(){
   }
 }
 
+function clearAllBlocks(){
+  for(let r = -2; r < 20; r++){
+    for(let c = 0; c < 10; c++){
+      playfield[r][c] = 0;
+    }
+  }
+  updateHud();
+  draw();
+}
+
+
+   
 function showQuestion(){
   // ✅ if no content, just advance gate and continue
   if(!QUESTIONS_RAW.length){
@@ -2424,11 +2436,10 @@ function showQuestion(){
         b.classList.add("correct");
         playSFX(AUDIO_FILES.quizCorrect, 0.95);
 
-        if(firstTry){
-          score += 100;
-          updateGravity();
-          updateHud();
-        }
+       if(firstTry){
+  clearAllBlocks();
+}
+
 
         setTimeout(()=>{
           qOverlay.style.display = "none";
