@@ -1033,6 +1033,24 @@ html, body {
   user-select: none;
   -webkit-touch-callout: none;
 }
+
+/* STEP: FORCE mob button labels to show (override hammer) */
+.mob-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+.mob-btn::before{
+  content: attr(data-label) !important;
+  display:block !important;
+  color:#000 !important;
+  -webkit-text-fill-color:#000 !important;
+  font-weight:900 !important;
+  font-size:22px !important;
+  line-height:1 !important;
+  opacity:1 !important;
+}
      
 </style>
    
