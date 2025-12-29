@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>Booha Blocks</title>
-<link rel="icon" type="image/png" sizes="32x32" href="tetris-tree.png">
-<link rel="apple-touch-icon" href="tetris-tree.png">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="tetris-tree.png">
+  <link rel="apple-touch-icon" href="tetris-tree.png">
 
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 
@@ -34,7 +35,7 @@
     }
 
     .shell{
-      width:min(92vw,420px);
+      width:min(92vw,460px);
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -48,21 +49,32 @@
       margin-top:4px;
     }
 
+    /* BIG + STYLIZED HEADER */
     .title{
       font-family:'Cinzel',serif;
       font-weight:900;
-      letter-spacing:.18em;
-      font-size:1.25rem;
+      letter-spacing:.22em;
+      font-size:2.15rem;
+      line-height:1.05;
+      text-transform:uppercase;
       text-shadow:
-        0 0 8px rgba(248,250,252,0.9),
-        0 0 16px rgba(251,113,133,0.8);
+        0 0 10px rgba(248,250,252,0.95),
+        0 0 22px rgba(251,113,133,0.75),
+        0 0 44px rgba(56,189,248,0.35);
     }
 
     .subtitle{
-      margin-top:6px;
-      font-size:.82rem;
-      letter-spacing:.22em;
+      margin-top:8px;
+      font-size:.92rem;
+      letter-spacing:.18em;
       color:#a5b4fc;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:.78rem;
+      letter-spacing:.14em;
+      opacity:.78;
     }
 
     .card{
@@ -92,13 +104,13 @@
       z-index:-1;
     }
 
-    /* Button */
+    /* Main Menu Button → goes to booha-blocks index */
     .game-link{
       display:block;
       text-decoration:none;
       color:#111827;
       font-weight:900;
-      padding:18px 14px;
+      padding:20px 14px;
       border-radius:18px;
       background:linear-gradient(135deg,var(--pink),var(--aqua));
       border:1px solid var(--gold);
@@ -110,15 +122,26 @@
       position:relative;
       overflow:hidden;
       -webkit-tap-highlight-color: transparent;
+      user-select:none;
     }
 
-    .game-link span{
+    .game-link .en{
       display:block;
-      font-size:.78rem;
+      font-family:'Cinzel',serif;
+      font-weight:900;
+      letter-spacing:.14em;
+      font-size:1.05rem;
+    }
+
+    .game-link .jp{
+      display:block;
+      font-size:.82rem;
       font-weight:800;
-      opacity:.9;
-      margin-top:6px;
-      letter-spacing:.12em;
+      opacity:.92;
+      margin-top:8px;
+      letter-spacing:.14em;
+      color:#0b1220;
+      text-shadow:0 0 10px rgba(255,255,255,0.55);
     }
 
     /* idle glow shimmer */
@@ -140,30 +163,33 @@
       100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
     }
 
-    /* click/touch pulse (1s) */
+    /* 5s pulse while sound plays */
     .game-link.pulse{
       transform:scale(.985);
-      filter:saturate(1.2) brightness(1.06);
+      filter:saturate(1.22) brightness(1.07);
       box-shadow:
         0 0 22px rgba(255,255,255,0.92),
-        0 0 34px rgba(255,209,102,0.55),
-        0 0 46px rgba(125,211,252,0.45),
+        0 0 38px rgba(255,209,102,0.60),
+        0 0 56px rgba(125,211,252,0.50),
         0 12px 30px rgba(0,0,0,0.38);
     }
-
     .game-link.pulse::after{
       animation:none;
-      opacity:.9;
+      opacity:.92;
       transform:translate3d(8%,4%,0) scale(1.25);
     }
 
+    /* Footer in “Booha font” (Cinzel) */
     .bottom{
       width:100%;
       text-align:center;
-      font-size:.78rem;
-      opacity:.8;
+      font-family:'Cinzel',serif;
+      font-weight:900;
+      font-size:.86rem;
+      opacity:.85;
       padding-bottom:4px;
-      letter-spacing:.08em;
+      letter-spacing:.14em;
+      text-shadow:0 0 10px rgba(248,250,252,0.25);
     }
   </style>
 </head>
@@ -171,42 +197,44 @@
 <body>
   <div class="shell">
 
-    <!-- TOP (not in button) -->
+    <!-- TOP -->
     <div class="top">
       <div class="title">BOOHA BLOCKS</div>
       <div class="subtitle">ブーハー・ブロックス</div>
+      <div class="hint">TETRIS GAMES / テトリス・ゲーム</div>
     </div>
 
     <!-- CENTER CARD -->
     <div class="card">
-      <a class="game-link" id="one5zeroBtn" href="./booha-blocks-one5zero/">
-        ONE 5 ZERO
-        <span>ワン・ファイブ・ゼロ</span>
+      <!-- ✅ Connects to the Booha Blocks “games menu” index -->
+      <a class="game-link" id="blocksMenuBtn" href="./booha-blocks/">
+        <span class="en">ENTER BOOHA BLOCKS</span>
+        <span class="jp">ブーハー・ブロックスへ</span>
       </a>
     </div>
 
-    <!-- BOTTOM (not in button) -->
+    <!-- BOTTOM -->
     <div class="bottom">Bryan's English School.</div>
   </div>
 
-  <!-- SFX -->
+  <!-- SFX (5 seconds) -->
   <audio id="indexSfx" preload="auto" src="index.mp3"></audio>
 
   <script>
     (function(){
-      const btn = document.getElementById("one5zeroBtn");
+      const btn   = document.getElementById("blocksMenuBtn");
       const sfxEl = document.getElementById("indexSfx");
-
       if(!btn) return;
 
+      const HOLD_MS = 5000; // ✅ 5 seconds (your button sound length)
+
       function playIndexSfx(){
-        // Safari-safe: don't rely on reusing <audio> for voice, but SFX is usually ok.
-        // Still, we guard and also allow fallback new Audio if needed.
         try{
+          // SFX is OK to reuse; still keep it simple and guarded.
           if(sfxEl){
             sfxEl.currentTime = 0;
             const p = sfxEl.play();
-            if(p && typeof p.catch === "function"){ p.catch(()=>{}); }
+            if(p && typeof p.catch === "function") p.catch(()=>{});
           }else{
             const a = new Audio("index.mp3");
             a.play().catch(()=>{});
@@ -214,24 +242,31 @@
         }catch(e){}
       }
 
-      function handleGo(e){
-        // let our 1s effect happen, then navigate
-        e.preventDefault();
+      let locked = false;
 
-        // visual pulse for ~1s
-        btn.classList.add("pulse");
-        playIndexSfx();
+      function handleGo(e){
+        e.preventDefault();
+        if(locked) return;
+        locked = true;
 
         const href = btn.getAttribute("href");
 
+        btn.classList.add("pulse");
+        playIndexSfx();
+
+        // keep the glow for the full sound duration
+        setTimeout(()=>{ btn.classList.remove("pulse"); }, HOLD_MS);
+
+        // navigate after ~5 seconds
         setTimeout(()=>{
           window.location.href = href;
-        }, 980);
+        }, HOLD_MS);
       }
 
-      // Use pointerdown so iOS feels instant
+      // iOS instant feel
       btn.addEventListener("pointerdown", handleGo, { passive:false });
-      // keyboard accessibility
+
+      // keyboard
       btn.addEventListener("keydown", (e)=>{
         if(e.key === "Enter" || e.key === " "){
           handleGo(e);
