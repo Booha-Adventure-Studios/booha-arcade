@@ -133,9 +133,10 @@
       z-index:-1;
     }
 
+    /* ✅ Button (now a real <button>, not a link) */
     .game-link.one5zero{
       display:block;
-      text-decoration:none;
+      width:100%;
       text-align:center;
 
       padding:22px 16px;
@@ -156,7 +157,14 @@
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       touch-action:manipulation;
+
+      cursor:pointer;
+      appearance:none;
+      -webkit-appearance:none;
+      background-clip:padding-box;
     }
+
+    .game-link.one5zero:focus{ outline:none; }
 
     .game-link.one5zero .en{
       display:block;
@@ -243,17 +251,15 @@
     </div>
 
     <div class="card">
-      <a class="game-link one5zero" id="one5zeroBtn" href="#" data-href="./booha-blocks/">
+      <!-- ✅ button cannot auto-navigate -->
+      <button class="game-link one5zero" id="one5zeroBtn" type="button" data-href="./booha-blocks/">
         <span class="en">ONE 5 ZERO</span>
         <span class="jp">ワン・ファイブ・ゼロ</span>
-      </a>
+      </button>
     </div>
 
     <div class="bottom">Bryan's English School</div>
   </div>
-
-  <!-- (kept, but not required) -->
-  <audio id="indexSfx" preload="auto" src="index.mp3"></audio>
 
   <script>
     (async function () {
@@ -306,30 +312,35 @@
         const data = await res.json();
 
         if (!data.valid) {
-          if (data.reason === "KICKED" || data.isActive === false) {
-            kickOut('kicked');
-          } else if (data.reason === "EXPIRED" || data.expired) {
-            kickOut('expired');
-          } else {
-            kickOut('invalid');
-          }
+          if (data.reason === "KICKED" || data.isActive === false) kickOut('kicked');
+          else if (data.reason === "EXPIRED" || data.expired) kickOut('expired');
+          else kickOut('invalid');
           return;
         }
 
         try { sessionStorage.setItem('boohaToken', token); } catch {}
 
+        // ✅ append token to ALL internal hrefs AND buttons with data-href
+        // anchors:
         document.querySelectorAll('a').forEach(a => {
-          const raw = a.dataset.href || a.getAttribute('href');
+          const raw = a.getAttribute('href');
           if (!raw) return;
           if (raw.startsWith('#')) return;
           if (raw.startsWith('http')) return;
-
           const u = new URL(raw, window.location.href);
           if (!u.searchParams.get('token')) u.searchParams.set('token', token);
+          a.setAttribute('href', u.pathname + u.search + u.hash);
+        });
 
-          const out = u.pathname + u.search + u.hash;
-          a.setAttribute('href', out);
-          a.dataset.href = out;
+        // buttons:
+        document.querySelectorAll('[data-href]').forEach(el=>{
+          const raw = el.getAttribute('data-href');
+          if(!raw) return;
+          if (raw.startsWith('#')) return;
+          if (raw.startsWith('http')) return;
+          const u = new URL(raw, window.location.href);
+          if (!u.searchParams.get('token')) u.searchParams.set('token', token);
+          el.setAttribute('data-href', u.pathname + u.search + u.hash);
         });
 
       } catch (err) {
@@ -339,57 +350,53 @@
     })();
   </script>
 
-  <!-- ✅ FIXED: play SFX immediately, then open in exactly 4 seconds -->
+  <!-- ✅ play SFX immediately, open EXACTLY 4 seconds later -->
   <script>
     (function(){
       const btn = document.getElementById("one5zeroBtn");
       if(!btn) return;
 
-      const OPEN_DELAY_MS = 4000; // ✅ exactly 4 sec
+      const OPEN_DELAY_MS = 4000;
       let locked = false;
-      let openTimer = null;
 
       function playIndexSfx(){
         try{
-          // Fresh instance prevents Safari silent lockups
-          const a = new Audio("index.mp3");
+          const a = new Audio("index.mp3"); // fresh instance (Safari-safe)
           a.currentTime = 0;
           a.play().catch(()=>{});
         }catch(e){}
       }
 
-      function handleGo(e){
-        e.preventDefault();
-        e.stopPropagation();
+      function go(){
         if(locked) return;
         locked = true;
 
-        const href = btn.dataset.href || "./booha-blocks/";
+        const href = btn.getAttribute("data-href") || "./booha-blocks/";
 
         btn.classList.add("pulse");
         playIndexSfx();
 
-        // hard schedule: open exactly 4 seconds later
-        openTimer = setTimeout(()=>{
-          window.location.href = href;
+        setTimeout(()=>{
+          window.location.assign(href);
         }, OPEN_DELAY_MS);
       }
 
-      btn.addEventListener("pointerdown", handleGo, { passive:false });
+      btn.addEventListener("pointerdown", (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        go();
+      }, { passive:false });
+
+      // also block click (some devices navigate on click after pointerdown)
+      btn.addEventListener("click", (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+      }, { passive:false });
 
       btn.addEventListener("keydown", (e)=>{
         if(e.key === "Enter" || e.key === " "){
-          handleGo(e);
-        }
-      });
-
-      // safety: if page hidden, don't get stuck in "locked" forever
-      document.addEventListener("visibilitychange", ()=>{
-        if(document.hidden && openTimer){
-          clearTimeout(openTimer);
-          openTimer = null;
-          locked = false;
-          btn.classList.remove("pulse");
+          e.preventDefault();
+          go();
         }
       });
     })();
