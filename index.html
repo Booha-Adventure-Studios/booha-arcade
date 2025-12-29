@@ -18,6 +18,7 @@
       --gold:#ffd166;
       --bg1:#020617;
       --bg2:#000000;
+      --neo:#a78bfa;
     }
 
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -35,7 +36,7 @@
     }
 
     .shell{
-      width:min(92vw,460px);
+      width:min(92vw,520px);
       display:flex;
       flex-direction:column;
       align-items:center;
@@ -49,32 +50,65 @@
       margin-top:4px;
     }
 
-    /* BIG + STYLIZED HEADER */
+    /* BIGGER + RETRO ARCADE FEEL */
     .title{
       font-family:'Cinzel',serif;
       font-weight:900;
-      letter-spacing:.22em;
-      font-size:2.15rem;
-      line-height:1.05;
+      letter-spacing:.20em;
+      font-size:2.85rem; /* ✅ bigger */
+      line-height:1.02;
       text-transform:uppercase;
+
+      /* “retro neon” stack */
       text-shadow:
-        0 0 10px rgba(248,250,252,0.95),
-        0 0 22px rgba(251,113,133,0.75),
-        0 0 44px rgba(56,189,248,0.35);
+        0 0 6px rgba(255,255,255,0.95),
+        0 0 12px rgba(255,126,185,0.85),
+        0 0 22px rgba(125,211,252,0.55),
+        0 0 42px rgba(167,139,250,0.35),
+        0 10px 0 rgba(0,0,0,0.35);
+    }
+
+    /* small scanline vibe behind header */
+    .title-wrap{
+      position:relative;
+      display:inline-block;
+      padding:10px 14px 12px;
+      border-radius:18px;
+    }
+
+    .title-wrap::before{
+      content:"";
+      position:absolute;
+      inset:-10px -14px -10px -14px;
+      border-radius:22px;
+      background:
+        linear-gradient(180deg,
+          rgba(255,255,255,0.06) 0%,
+          rgba(255,255,255,0.02) 30%,
+          rgba(0,0,0,0.10) 60%,
+          rgba(0,0,0,0.22) 100%),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.07),
+          rgba(255,255,255,0.07) 1px,
+          rgba(0,0,0,0.0) 3px,
+          rgba(0,0,0,0.0) 6px
+        );
+      opacity:.55;
+      filter:blur(0.2px);
+      pointer-events:none;
+      z-index:-1;
+      box-shadow:
+        0 0 22px rgba(255,126,185,0.18),
+        0 0 40px rgba(125,211,252,0.10);
     }
 
     .subtitle{
-      margin-top:8px;
-      font-size:.92rem;
+      margin-top:10px;
+      font-size:.95rem;
       letter-spacing:.18em;
       color:#a5b4fc;
-    }
-
-    .hint{
-      margin-top:10px;
-      font-size:.78rem;
-      letter-spacing:.14em;
-      opacity:.78;
+      text-shadow:0 0 12px rgba(59,130,246,0.18);
     }
 
     .card{
@@ -104,7 +138,6 @@
       z-index:-1;
     }
 
-    /* Main Menu Button → goes to booha-blocks index */
     .game-link{
       display:block;
       text-decoration:none;
@@ -123,6 +156,7 @@
       overflow:hidden;
       -webkit-tap-highlight-color: transparent;
       user-select:none;
+      touch-action:manipulation;
     }
 
     .game-link .en{
@@ -144,7 +178,6 @@
       text-shadow:0 0 10px rgba(255,255,255,0.55);
     }
 
-    /* idle glow shimmer */
     .game-link::after{
       content:"";
       position:absolute;
@@ -163,7 +196,7 @@
       100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
     }
 
-    /* 5s pulse while sound plays */
+    /* Strong pulse while SFX plays */
     .game-link.pulse{
       transform:scale(.985);
       filter:saturate(1.22) brightness(1.07);
@@ -171,6 +204,7 @@
         0 0 22px rgba(255,255,255,0.92),
         0 0 38px rgba(255,209,102,0.60),
         0 0 56px rgba(125,211,252,0.50),
+        0 0 66px rgba(167,139,250,0.35),
         0 12px 30px rgba(0,0,0,0.38);
     }
     .game-link.pulse::after{
@@ -179,17 +213,21 @@
       transform:translate3d(8%,4%,0) scale(1.25);
     }
 
-    /* Footer in “Booha font” (Cinzel) */
     .bottom{
       width:100%;
       text-align:center;
       font-family:'Cinzel',serif;
       font-weight:900;
-      font-size:.86rem;
-      opacity:.85;
+      font-size:.88rem;
+      opacity:.86;
       padding-bottom:4px;
       letter-spacing:.14em;
       text-shadow:0 0 10px rgba(248,250,252,0.25);
+    }
+
+    /* Responsive bump for small phones */
+    @media (max-width:380px){
+      .title{ font-size:2.45rem; }
     }
   </style>
 </head>
@@ -197,23 +235,21 @@
 <body>
   <div class="shell">
 
-    <!-- TOP -->
     <div class="top">
-      <div class="title">BOOHA BLOCKS</div>
+      <div class="title-wrap">
+        <div class="title">BOOHA BLOCKS</div>
+      </div>
       <div class="subtitle">ブーハー・ブロックス</div>
-      <div class="hint">TETRIS GAMES / テトリス・ゲーム</div>
     </div>
 
-    <!-- CENTER CARD -->
     <div class="card">
-      <!-- ✅ Connects to the Booha Blocks “games menu” index -->
-      <a class="game-link" id="blocksMenuBtn" href="./booha-blocks/">
+      <!-- ✅ IMPORTANT: use data-href so click doesn't navigate immediately -->
+      <a class="game-link" id="blocksMenuBtn" href="#" data-href="./booha-blocks/">
         <span class="en">ENTER BOOHA BLOCKS</span>
         <span class="jp">ブーハー・ブロックスへ</span>
       </a>
     </div>
 
-    <!-- BOTTOM -->
     <div class="bottom">Bryan's English School.</div>
   </div>
 
@@ -223,47 +259,38 @@
   <script>
     (function(){
       const btn   = document.getElementById("blocksMenuBtn");
-      const sfxEl = document.getElementById("indexSfx");
       if(!btn) return;
 
-      const HOLD_MS = 5000; // ✅ 5 seconds (your button sound length)
-
-      function playIndexSfx(){
-        try{
-          // SFX is OK to reuse; still keep it simple and guarded.
-          if(sfxEl){
-            sfxEl.currentTime = 0;
-            const p = sfxEl.play();
-            if(p && typeof p.catch === "function") p.catch(()=>{});
-          }else{
-            const a = new Audio("index.mp3");
-            a.play().catch(()=>{});
-          }
-        }catch(e){}
-      }
+      const HOLD_MS = 5000; // ✅ 5 sec (sound length)
+      const href    = btn.dataset.href || "./booha-blocks/";
 
       let locked = false;
 
+      function playSfx(){
+        try{
+          // Use a fresh Audio instance so Safari never “sticks”
+          const a = new Audio("index.mp3");
+          a.currentTime = 0;
+          a.play().catch(()=>{});
+        }catch(e){}
+      }
+
       function handleGo(e){
         e.preventDefault();
+        e.stopPropagation();
         if(locked) return;
         locked = true;
 
-        const href = btn.getAttribute("href");
-
         btn.classList.add("pulse");
-        playIndexSfx();
+        playSfx();
 
-        // keep the glow for the full sound duration
-        setTimeout(()=>{ btn.classList.remove("pulse"); }, HOLD_MS);
-
-        // navigate after ~5 seconds
+        // navigate AFTER sound/glow
         setTimeout(()=>{
           window.location.href = href;
         }, HOLD_MS);
       }
 
-      // iOS instant feel
+      // Use pointerdown so it feels instant on iOS
       btn.addEventListener("pointerdown", handleGo, { passive:false });
 
       // keyboard
