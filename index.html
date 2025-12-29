@@ -9,8 +9,7 @@
 
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -51,81 +50,62 @@
       margin-top:4px;
     }
 
-    /* BIGGER + RETRO ARCADE FEEL */
-    .title{
-      font-family:'Cinzel',serif;
-      font-weight:900;
-      letter-spacing:.20em;
-      font-size:2.85rem; /* ✅ bigger */
-      line-height:1.02;
-      text-transform:uppercase;
+    /* Orbitron retro title */
+    .title-wrap{
+      position:relative;
+      display:inline-block;
+      padding:10px 16px 14px;
+      border-radius:18px;
+    }
 
-      /* “retro neon” stack */
+    .title-wrap::before{
+      content:"";
+      position:absolute;
+      inset:-10px -14px -10px -14px;
+      border-radius:22px;
+      background:
+        linear-gradient(180deg,
+          rgba(255,255,255,0.06) 0%,
+          rgba(255,255,255,0.02) 30%,
+          rgba(0,0,0,0.10) 60%,
+          rgba(0,0,0,0.22) 100%),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.08),
+          rgba(255,255,255,0.08) 1px,
+          rgba(0,0,0,0.0) 3px,
+          rgba(0,0,0,0.0) 6px
+        );
+      opacity:.55;
+      pointer-events:none;
+      z-index:-1;
+      box-shadow:
+        0 0 22px rgba(255,126,185,0.20),
+        0 0 40px rgba(125,211,252,0.12);
+    }
+
+    .title{
+      font-family:'Orbitron', system-ui, sans-serif;
+      font-weight:900;
+      letter-spacing:.18em;
+      font-size:3.25rem;
+      line-height:1.0;
+      text-transform:uppercase;
       text-shadow:
         0 0 6px rgba(255,255,255,0.95),
-        0 0 12px rgba(255,126,185,0.85),
-        0 0 22px rgba(125,211,252,0.55),
-        0 0 42px rgba(167,139,250,0.35),
+        0 0 14px rgba(255,126,185,0.85),
+        0 0 26px rgba(125,211,252,0.60),
+        0 0 56px rgba(167,139,250,0.35),
         0 10px 0 rgba(0,0,0,0.35);
     }
 
-.title-wrap{
-  position:relative;
-  display:inline-block;
-  padding:10px 16px 14px;
-  border-radius:18px;
-}
-
-.title-wrap::before{
-  content:"";
-  position:absolute;
-  inset:-10px -14px -10px -14px;
-  border-radius:22px;
-  background:
-    linear-gradient(180deg,
-      rgba(255,255,255,0.06) 0%,
-      rgba(255,255,255,0.02) 30%,
-      rgba(0,0,0,0.10) 60%,
-      rgba(0,0,0,0.22) 100%),
-    repeating-linear-gradient(
-      to bottom,
-      rgba(255,255,255,0.08),
-      rgba(255,255,255,0.08) 1px,
-      rgba(0,0,0,0.0) 3px,
-      rgba(0,0,0,0.0) 6px
-    );
-  opacity:.55;
-  pointer-events:none;
-  z-index:-1;
-  box-shadow:
-    0 0 22px rgba(255,126,185,0.20),
-    0 0 40px rgba(125,211,252,0.12);
-}
-
-.title{
-  font-family:'Orbitron', system-ui, sans-serif;
-  font-weight:900;
-  letter-spacing:.18em;
-  font-size:3.25rem; /* ✅ bigger */
-  line-height:1.0;
-  text-transform:uppercase;
-
-  text-shadow:
-    0 0 6px rgba(255,255,255,0.95),
-    0 0 14px rgba(255,126,185,0.85),
-    0 0 26px rgba(125,211,252,0.60),
-    0 0 56px rgba(167,139,250,0.35),
-    0 10px 0 rgba(0,0,0,0.35);
-}
-
-.subtitle{
-  margin-top:10px;
-  font-size:.95rem;
-  letter-spacing:.18em;
-  color:#a5b4fc;
-  text-shadow:0 0 12px rgba(59,130,246,0.18);
-}
-
+    .subtitle{
+      margin-top:10px;
+      font-size:.95rem;
+      letter-spacing:.18em;
+      color:#a5b4fc;
+      text-shadow:0 0 12px rgba(59,130,246,0.18);
+    }
 
     .card{
       width:100%;
@@ -154,90 +134,92 @@
       z-index:-1;
     }
 
-  .game-link.one5zero{
-  display:block;
-  text-decoration:none;
-  text-align:center;
+    /* Button */
+    .game-link.one5zero{
+      display:block;
+      text-decoration:none;
+      text-align:center;
 
-  padding:22px 16px;
-  border-radius:18px;
+      padding:22px 16px;
+      border-radius:18px;
 
-  background:linear-gradient(135deg,var(--pink),var(--aqua));
-  border:2px solid var(--gold);
+      background:linear-gradient(135deg,var(--pink),var(--aqua));
+      border:2px solid var(--gold);
 
-  box-shadow:
-    0 0 18px rgba(255,255,255,0.75),
-    0 0 30px rgba(255,209,102,0.35),
-    0 0 48px rgba(125,211,252,0.35),
-    0 12px 28px rgba(0,0,0,0.45);
+      box-shadow:
+        0 0 18px rgba(255,255,255,0.75),
+        0 0 30px rgba(255,209,102,0.35),
+        0 0 48px rgba(125,211,252,0.35),
+        0 12px 28px rgba(0,0,0,0.45);
 
-  position:relative;
-  overflow:hidden;
+      position:relative;
+      overflow:hidden;
 
-  user-select:none;
-  -webkit-tap-highlight-color:transparent;
-  touch-action:manipulation;
-}
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      touch-action:manipulation;
+    }
 
-/* EN title */
-.game-link.one5zero .en{
-  display:block;
-  font-family:'Orbitron', system-ui, sans-serif;
-  font-weight:900;
-  letter-spacing:.22em;
-  font-size:1.45rem;
-  color:#0b1220;
-}
+    .game-link.one5zero .en{
+      display:block;
+      font-family:'Orbitron', system-ui, sans-serif;
+      font-weight:900;
+      letter-spacing:.22em;
+      font-size:1.45rem;
+      color:#0b1220;
+    }
 
-/* JP subtitle */
-.game-link.one5zero .jp{
-  display:block;
-  margin-top:8px;
-  font-family:'Noto Sans JP', system-ui, sans-serif;
-  font-weight:700;
-  font-size:.78rem;
-  letter-spacing:.18em;
-  color:#0b1220;
-  opacity:.9;
-  text-shadow:0 0 10px rgba(255,255,255,0.55);
-}
+    .game-link.one5zero .jp{
+      display:block;
+      margin-top:8px;
+      font-family:'Noto Sans JP', system-ui, sans-serif;
+      font-weight:700;
+      font-size:.78rem;
+      letter-spacing:.18em;
+      color:#0b1220;
+      opacity:.9;
+      text-shadow:0 0 10px rgba(255,255,255,0.55);
+    }
 
-/* idle shimmer */
-.game-link.one5zero::after{
-  content:"";
-  position:absolute;
-  inset:-45%;
-  background:radial-gradient(circle, rgba(255,255,255,0.45), transparent 55%);
-  filter:blur(12px);
-  opacity:.55;
-  transform:translate3d(-30%, -10%, 0);
-  animation:floatGlow 3.2s ease-in-out infinite;
-  pointer-events:none;
-}
+    @keyframes floatGlow{
+      0%   { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
+      50%  { transform:translate3d(14%,6%,0)  scale(1.12); opacity:.75; }
+      100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
+    }
 
-/* glowing while sound plays */
-.game-link.one5zero.pulse{
-  transform:scale(.985);
-  filter:saturate(1.25) brightness(1.08);
-  box-shadow:
-    0 0 26px rgba(255,255,255,0.95),
-    0 0 44px rgba(255,209,102,0.65),
-    0 0 64px rgba(125,211,252,0.55),
-    0 0 86px rgba(167,139,250,0.45),
-    0 14px 34px rgba(0,0,0,0.5);
-}
+    .game-link.one5zero::after{
+      content:"";
+      position:absolute;
+      inset:-45%;
+      background:radial-gradient(circle, rgba(255,255,255,0.45), transparent 55%);
+      filter:blur(12px);
+      opacity:.55;
+      transform:translate3d(-30%, -10%, 0);
+      animation:floatGlow 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
 
-.game-link.one5zero.pulse::after{
-  animation:none;
-  opacity:.95;
-  transform:translate3d(10%,6%,0) scale(1.35);
-}
+    .game-link.one5zero.pulse{
+      transform:scale(.985);
+      filter:saturate(1.25) brightness(1.08);
+      box-shadow:
+        0 0 26px rgba(255,255,255,0.95),
+        0 0 44px rgba(255,209,102,0.65),
+        0 0 64px rgba(125,211,252,0.55),
+        0 0 86px rgba(167,139,250,0.45),
+        0 14px 34px rgba(0,0,0,0.5);
+    }
 
+    .game-link.one5zero.pulse::after{
+      animation:none;
+      opacity:.95;
+      transform:translate3d(10%,6%,0) scale(1.35);
+    }
 
     .bottom{
       width:100%;
       text-align:center;
-      font-family:'Cinzel',serif;
+      font-family:'Orbitron', system-ui, sans-serif;
       font-weight:900;
       font-size:.88rem;
       opacity:.86;
@@ -246,7 +228,6 @@
       text-shadow:0 0 10px rgba(248,250,252,0.25);
     }
 
-    /* Responsive bump for small phones */
     @media (max-width:380px){
       .title{ font-size:2.45rem; }
     }
@@ -256,20 +237,18 @@
 <body>
   <div class="shell">
 
-   <div class="top">
-  <div class="title-wrap">
-    <div class="title">BOOHA BLOCKS</div>
-  </div>
-  <div class="subtitle">ブーハー・ブロックス</div>
-</div>
-
+    <div class="top">
+      <div class="title-wrap">
+        <div class="title">BOOHA BLOCKS</div>
+      </div>
+      <div class="subtitle">ブーハー・ブロックス</div>
+    </div>
 
     <div class="card">
-      <!-- ✅ IMPORTANT: use data-href so click doesn't navigate immediately -->
-      <<a class="game-link one5zero" id="one5zeroBtn" href="#" data-href="./booha-blocks/">
-  <span class="en">ONE 5 ZERO</span>
-  <span class="jp">ワン・ファイブ・ゼロ</span>
-</a>
+      <a class="game-link one5zero" id="one5zeroBtn" href="#" data-href="./booha-blocks/">
+        <span class="en">ONE 5 ZERO</span>
+        <span class="jp">ワン・ファイブ・ゼロ</span>
+      </a>
     </div>
 
     <div class="bottom">Bryan's English School</div>
@@ -278,19 +257,118 @@
   <!-- SFX (5 seconds) -->
   <audio id="indexSfx" preload="auto" src="index.mp3"></audio>
 
+  <!-- ==============================
+       BOOHA TOKEN GATE (REQUIRED)
+       - Verifies ?token= OR sessionStorage boohaToken
+       - Redirects to Booha Gate on missing/invalid/expired/kicked
+       - Appends token to all internal links
+       ============================== -->
+  <script>
+    (async function () {
+      const API_BASE = 'https://www.bryanharper.tokyo';
+      const GATE_URL = 'https://www.bryanharper.tokyo/booha-gate';
+
+      const MSG = {
+        kicked: {
+          en: "Someone just logged in using your name and PIN.",
+          jp: "別の端末であなたの名前とPINでログインされました。"
+        },
+        expired: {
+          en: "Your session has expired. Please log in again.",
+          jp: "セッションの有効期限が切れました。もう一度ブーハーゲートからログインしてください。"
+        },
+        invalid: {
+          en: "Your session is invalid. Please log in again.",
+          jp: "セッションの確認に問題が発生しました。もう一度ブーハーゲートからログインしてください。"
+        },
+        missing: {
+          en: "No session found. Please log in through the Booha Gate.",
+          jp: "セッションが見つかりません。ブーハーゲートからログインしてください。"
+        }
+      };
+
+      function kickOut(kind) {
+        const m = MSG[kind] || MSG.invalid;
+        alert(m.en + "\n\n" + m.jp);
+        window.location.href = GATE_URL;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      let token = params.get('token');
+
+      // fallback: reuse token from Adventure if present
+      if (!token) {
+        try { token = sessionStorage.getItem('boohaToken'); } catch {}
+      }
+
+      if (!token) {
+        kickOut('missing');
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          API_BASE + '/_functions/verifyToken?token=' + encodeURIComponent(token),
+          { headers: { 'Accept': 'application/json' } }
+        );
+
+        const data = await res.json();
+
+        if (!data.valid) {
+          if (data.reason === "KICKED" || data.isActive === false) {
+            kickOut('kicked');
+          } else if (data.reason === "EXPIRED" || data.expired) {
+            kickOut('expired');
+          } else {
+            kickOut('invalid');
+          }
+          return;
+        }
+
+        // ✅ token is valid — store for this browser session
+        try { sessionStorage.setItem('boohaToken', token); } catch {}
+
+        // ✅ append token to all internal links (including data-href buttons)
+        document.querySelectorAll('a').forEach(a => {
+          const raw = a.dataset.href || a.getAttribute('href');
+          if (!raw) return;
+          if (raw.startsWith('#')) return;
+          if (raw.startsWith('http')) return;
+
+          const u = new URL(raw, window.location.href);
+          if (!u.searchParams.get('token')) u.searchParams.set('token', token);
+
+          const out = u.pathname + u.search + u.hash;
+          a.setAttribute('href', out);
+          a.dataset.href = out;
+        });
+
+      } catch (err) {
+        console.error('[Booha Blocks Index] token verification error:', err);
+        kickOut('invalid');
+      }
+    })();
+  </script>
+  <!-- ==============================
+       END BOOHA TOKEN GATE
+       ============================== -->
+
+  <!-- ==============================
+       BUTTON SFX + DELAYED NAV (5s)
+       - Glows + plays index.mp3
+       - Opens data-href AFTER 5s
+       ============================== -->
   <script>
     (function(){
-      const btn   = document.getElementById("blocksMenuBtn");
+      const btn = document.getElementById("one5zeroBtn");
       if(!btn) return;
 
-      const HOLD_MS = 4000; // ✅ 4 sec (sound length)
-      const href    = btn.dataset.href || "./booha-blocks/";
-
+      const HOLD_MS = 5000; // ✅ 5 sec
       let locked = false;
 
       function playSfx(){
         try{
-          // Use a fresh Audio instance so Safari never “sticks”
+          // fresh Audio prevents Safari “stuck” behavior
           const a = new Audio("index.mp3");
           a.currentTime = 0;
           a.play().catch(()=>{});
@@ -303,19 +381,18 @@
         if(locked) return;
         locked = true;
 
+        const href = btn.dataset.href || "./booha-blocks/";
+
         btn.classList.add("pulse");
         playSfx();
 
-        // navigate AFTER sound/glow
         setTimeout(()=>{
           window.location.href = href;
         }, HOLD_MS);
       }
 
-      // Use pointerdown so it feels instant on iOS
       btn.addEventListener("pointerdown", handleGo, { passive:false });
 
-      // keyboard
       btn.addEventListener("keydown", (e)=>{
         if(e.key === "Enter" || e.key === " "){
           handleGo(e);
@@ -323,5 +400,9 @@
       });
     })();
   </script>
+  <!-- ==============================
+       END BUTTON SFX + DELAYED NAV
+       ============================== -->
+
 </body>
 </html>
