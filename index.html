@@ -154,80 +154,85 @@
       z-index:-1;
     }
 
-    .game-link{
-      display:block;
-      text-decoration:none;
-      color:#111827;
-      font-weight:900;
-      padding:20px 14px;
-      border-radius:18px;
-      background:linear-gradient(135deg,var(--pink),var(--aqua));
-      border:1px solid var(--gold);
-      box-shadow:
-        0 0 16px rgba(255,255,255,0.72),
-        0 0 24px rgba(255,209,102,0.28),
-        0 10px 26px rgba(0,0,0,0.35);
-      transition:transform .08s ease, box-shadow .12s ease, filter .12s ease;
-      position:relative;
-      overflow:hidden;
-      -webkit-tap-highlight-color: transparent;
-      user-select:none;
-      touch-action:manipulation;
-    }
+  .game-link.one5zero{
+  display:block;
+  text-decoration:none;
+  text-align:center;
 
-    .game-link .en{
-      display:block;
-      font-family:'Cinzel',serif;
-      font-weight:900;
-      letter-spacing:.14em;
-      font-size:1.05rem;
-    }
+  padding:22px 16px;
+  border-radius:18px;
 
-    .game-link .jp{
-      display:block;
-      font-size:.82rem;
-      font-weight:800;
-      opacity:.92;
-      margin-top:8px;
-      letter-spacing:.14em;
-      color:#0b1220;
-      text-shadow:0 0 10px rgba(255,255,255,0.55);
-    }
+  background:linear-gradient(135deg,var(--pink),var(--aqua));
+  border:2px solid var(--gold);
 
-    .game-link::after{
-      content:"";
-      position:absolute;
-      inset:-40%;
-      background:radial-gradient(circle, rgba(255,255,255,0.35), transparent 55%);
-      filter:blur(10px);
-      opacity:.55;
-      transform:translate3d(-30%, -10%, 0);
-      animation:floatGlow 3.2s ease-in-out infinite;
-      pointer-events:none;
-    }
+  box-shadow:
+    0 0 18px rgba(255,255,255,0.75),
+    0 0 30px rgba(255,209,102,0.35),
+    0 0 48px rgba(125,211,252,0.35),
+    0 12px 28px rgba(0,0,0,0.45);
 
-    @keyframes floatGlow{
-      0%   { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
-      50%  { transform:translate3d(14%,6%,0)  scale(1.12); opacity:.75; }
-      100% { transform:translate3d(-34%,-8%,0) scale(1); opacity:.45; }
-    }
+  position:relative;
+  overflow:hidden;
 
-    /* Strong pulse while SFX plays */
-    .game-link.pulse{
-      transform:scale(.985);
-      filter:saturate(1.22) brightness(1.07);
-      box-shadow:
-        0 0 22px rgba(255,255,255,0.92),
-        0 0 38px rgba(255,209,102,0.60),
-        0 0 56px rgba(125,211,252,0.50),
-        0 0 66px rgba(167,139,250,0.35),
-        0 12px 30px rgba(0,0,0,0.38);
-    }
-    .game-link.pulse::after{
-      animation:none;
-      opacity:.92;
-      transform:translate3d(8%,4%,0) scale(1.25);
-    }
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+
+/* EN title */
+.game-link.one5zero .en{
+  display:block;
+  font-family:'Orbitron', system-ui, sans-serif;
+  font-weight:900;
+  letter-spacing:.22em;
+  font-size:1.45rem;
+  color:#0b1220;
+}
+
+/* JP subtitle */
+.game-link.one5zero .jp{
+  display:block;
+  margin-top:8px;
+  font-family:'Noto Sans JP', system-ui, sans-serif;
+  font-weight:700;
+  font-size:.78rem;
+  letter-spacing:.18em;
+  color:#0b1220;
+  opacity:.9;
+  text-shadow:0 0 10px rgba(255,255,255,0.55);
+}
+
+/* idle shimmer */
+.game-link.one5zero::after{
+  content:"";
+  position:absolute;
+  inset:-45%;
+  background:radial-gradient(circle, rgba(255,255,255,0.45), transparent 55%);
+  filter:blur(12px);
+  opacity:.55;
+  transform:translate3d(-30%, -10%, 0);
+  animation:floatGlow 3.2s ease-in-out infinite;
+  pointer-events:none;
+}
+
+/* glowing while sound plays */
+.game-link.one5zero.pulse{
+  transform:scale(.985);
+  filter:saturate(1.25) brightness(1.08);
+  box-shadow:
+    0 0 26px rgba(255,255,255,0.95),
+    0 0 44px rgba(255,209,102,0.65),
+    0 0 64px rgba(125,211,252,0.55),
+    0 0 86px rgba(167,139,250,0.45),
+    0 14px 34px rgba(0,0,0,0.5);
+}
+
+.game-link.one5zero.pulse::after{
+  animation:none;
+  opacity:.95;
+  transform:translate3d(10%,6%,0) scale(1.35);
+}
+
 
     .bottom{
       width:100%;
@@ -261,10 +266,10 @@
 
     <div class="card">
       <!-- ✅ IMPORTANT: use data-href so click doesn't navigate immediately -->
-      <a class="game-link" id="blocksMenuBtn" href="#" data-href="./booha-blocks/">
-        <span class="en">ENTER BOOHA BLOCKS</span>
-        <span class="jp">ブーハー・ブロックスへ</span>
-      </a>
+      <<a class="game-link one5zero" id="one5zeroBtn" href="#" data-href="./booha-blocks/">
+  <span class="en">ONE 5 ZERO</span>
+  <span class="jp">ワン・ファイブ・ゼロ</span>
+</a>
     </div>
 
     <div class="bottom">Bryan's English School</div>
